@@ -2,7 +2,7 @@
 
 client_id = "c38c075511f9ca676bf617d60296f5a9"
 name = "WebMCP Merchant Research Lab"
-application_url = "https://example.com"
+application_url = "https://merch-relay.vercel.app"
 embedded = true
 
 [build]
