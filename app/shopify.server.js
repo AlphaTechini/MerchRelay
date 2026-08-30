@@ -7,6 +7,8 @@ import {
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
 
+const FLASH_STORE_DOMAIN = "flash-store-bpvvczlu.myshopify.com";
+
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
   apiSecretKey: process.env.SHOPIFY_API_SECRET || "",
@@ -32,3 +34,15 @@ export const unauthenticated = shopify.unauthenticated;
 export const login = shopify.login;
 export const registerWebhooks = shopify.registerWebhooks;
 export const sessionStorage = shopify.sessionStorage;
+
+export function getConfiguredShop() {
+  const shop = process.env.SHOPIFY_SHOP?.trim().toLowerCase();
+
+  if (shop !== FLASH_STORE_DOMAIN) {
+    throw new Error(
+      `SHOPIFY_SHOP must be configured as ${FLASH_STORE_DOMAIN}.`,
+    );
+  }
+
+  return shop;
+}

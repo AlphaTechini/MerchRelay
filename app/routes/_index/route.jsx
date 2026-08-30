@@ -1,19 +1,25 @@
 import { redirect, Form, useLoaderData } from "react-router";
-import { login } from "../../shopify.server";
+import { getConfiguredShop } from "../../shopify.server";
 import styles from "./styles.module.css";
 
 export const loader = async ({ request }) => {
   const url = new URL(request.url);
+  const shop = getConfiguredShop();
+  const requestedShop = url.searchParams.get("shop");
 
-  if (url.searchParams.get("shop")) {
+  if (requestedShop === shop) {
     throw redirect(`/app?${url.searchParams.toString()}`);
   }
 
-  return { showForm: Boolean(login) };
+  if (requestedShop) {
+    throw redirect(`/auth/login?shop=${encodeURIComponent(shop)}`);
+  }
+
+  return { shop };
 };
 
 export default function App() {
-  const { showForm } = useLoaderData();
+  const { shop } = useLoaderData();
 
   return (
     <div className={styles.index}>
@@ -22,18 +28,12 @@ export default function App() {
         <p className={styles.text}>
           A tagline about [your app] that describes your value proposition.
         </p>
-        {showForm && (
-          <Form className={styles.form} method="post" action="/auth/login">
-            <label className={styles.label}>
-              <span>Shop domain</span>
-              <input className={styles.input} type="text" name="shop" />
-              <span>e.g: my-shop-domain.myshopify.com</span>
-            </label>
-            <button className={styles.button} type="submit">
-              Log in
-            </button>
-          </Form>
-        )}
+        <Form className={styles.form} method="post" action="/auth/login">
+          <input type="hidden" name="shop" value={shop} />
+          <button className={styles.button} type="submit">
+            Continue to Flash Store
+          </button>
+        </Form>
         <ul className={styles.list}>
           <li>
             <strong>Product feature</strong>. Some detail about your feature and
