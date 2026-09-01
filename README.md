@@ -1,6 +1,10 @@
-# Shopify App Template - React Router
+# MerchRelay
 
-This is a template for building a [Shopify app](https://shopify.dev/docs/apps/getting-started) using [React Router](https://reactrouter.com/). It was forked from the [Shopify Remix app template](https://github.com/Shopify/shopify-app-template-remix) and converted to React Router.
+MerchRelay is a merchant-intelligence and store-management workspace built for the WebMCP Challenge. The agent analyzes verified Shopify data, researches public catalog information, prepares proposals, and applies only merchant-approved changes.
+
+Project structure and logic links are documented in [structure.md](structure.md).
+
+The application uses Shopify's official [React Router app template](https://shopify.dev/docs/api/shopify-app-react-router), PostgreSQL-backed Prisma session storage, Shopify Admin GraphQL, Global Catalog MCP, and browser WebMCP tools.
 
 Rather than cloning this repo, follow the [Quick Start steps](https://github.com/Shopify/shopify-app-template-react-router#quick-start).
 
@@ -18,13 +22,14 @@ Before you begin, you'll need to [download and install the Shopify CLI](https://
 
 ### Setup
 
-```shell
-shopify app init --template=https://github.com/Shopify/shopify-app-template-react-router
+```powershell
+pnpm install
+pnpm run build
 ```
 
 ### Local Development
 
-```shell
+```powershell
 shopify app dev
 ```
 
@@ -79,37 +84,11 @@ For more information on the Shopify Dev MCP please read [the documentation](http
 
 ### Application Storage
 
-This template uses [Prisma](https://www.prisma.io/) to store session data, by default using an [SQLite](https://www.sqlite.org/index.html) database.
-The database is defined as a Prisma schema in `prisma/schema.prisma`.
+MerchRelay uses [Prisma](https://www.prisma.io/) with PostgreSQL for Shopify sessions and collaboration history. The schema is defined in `prisma/schema.prisma`, and Vercel runs `prisma migrate deploy` before each production build.
 
-This use of SQLite works in production if your app runs as a single instance.
-The database that works best for you depends on the data your app needs and how it is queried.
-Here’s a short list of databases providers that provide a free tier to get started:
-
-| Database   | Type             | Hosters                                                                                                                                                                                                                                    |
-| ---------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| MySQL      | SQL              | [Digital Ocean](https://www.digitalocean.com/products/managed-databases-mysql), [Planet Scale](https://planetscale.com/), [Amazon Aurora](https://aws.amazon.com/rds/aurora/), [Google Cloud SQL](https://cloud.google.com/sql/docs/mysql) |
-| PostgreSQL | SQL              | [Digital Ocean](https://www.digitalocean.com/products/managed-databases-postgresql), [Amazon Aurora](https://aws.amazon.com/rds/aurora/), [Google Cloud SQL](https://cloud.google.com/sql/docs/postgres)                                   |
-| Redis      | Key-value        | [Digital Ocean](https://www.digitalocean.com/products/managed-databases-redis), [Amazon MemoryDB](https://aws.amazon.com/memorydb/)                                                                                                        |
-| MongoDB    | NoSQL / Document | [Digital Ocean](https://www.digitalocean.com/products/managed-databases-mongodb), [MongoDB Atlas](https://www.mongodb.com/atlas/database)                                                                                                  |
-
-To use one of these, you can use a different [datasource provider](https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#datasource) in your `schema.prisma` file, or a different [SessionStorage adapter package](https://github.com/Shopify/shopify-api-js/blob/main/packages/shopify-api/docs/guides/session-storage.md).
+The production database variable is `DB_PRISMA_DATABASE_URL`. The repository never requires a local `.env` file.
 
 ### Build
-
-Build the app by running the command below with the package manager of your choice:
-
-Using yarn:
-
-```shell
-yarn build
-```
-
-Using npm:
-
-```shell
-npm run build
-```
 
 Using pnpm:
 
@@ -119,14 +98,11 @@ pnpm run build
 
 ## Hosting
 
-When you're ready to set up your app in production, you can follow [our deployment documentation](https://shopify.dev/docs/apps/launch/deployment) to host it externally. From there, you have a few options:
+The production target is Vercel. Set the server-only Shopify variables, `DB_PRISMA_DATABASE_URL`, and the Global Catalog variables in the Vercel project settings. Pushes to `main` trigger the Vercel build defined in `vercel.json`.
 
-- [Google Cloud Run](https://shopify.dev/docs/apps/launch/deployment/deploy-to-google-cloud-run): This tutorial is written specifically for this example repo, and is compatible with the extended steps included in the subsequent [**Build your app**](tutorial) in the **Getting started** docs. It is the most detailed tutorial for taking a React Router-based Shopify app and deploying it to production. It includes configuring permissions and secrets, setting up a production database, and even hosting your apps behind a load balancer across multiple regions.
-- [Fly.io](https://fly.io/docs/js/shopify/): Leverages the Fly.io CLI to quickly launch Shopify apps to a single machine.
-- [Render](https://render.com/docs/deploy-shopify-app): This tutorial guides you through using Docker to deploy and install apps on a Dev store.
-- [Manual deployment guide](https://shopify.dev/docs/apps/launch/deployment/deploy-to-hosting-service): This resource provides general guidance on the requirements of deployment including environment variables, secrets, and persistent data.
+Global Catalog uses `CATALOG_CLIENT_ID`, `CATALOG_API_KEY`, and `CATALOG_ENDPOINT`. The standard endpoint is `https://catalog.shopify.com/api/ucp/mcp`; a saved catalog identifier can be added to requests later.
 
-When you reach the step for [setting up environment variables](https://shopify.dev/docs/apps/deployment/web#set-env-vars), you also need to set the variable `NODE_ENV=production`.
+See [Shopify deployment documentation](https://shopify.dev/docs/apps/launch/deployment) for platform requirements.
 
 ## Gotchas / Troubleshooting
 
@@ -138,7 +114,7 @@ If you get an error like:
 The table `main.Session` does not exist in the current database.
 ```
 
-Create the database for Prisma. Run the `setup` script in `package.json` using `npm`, `yarn` or `pnpm`.
+Create the database for Prisma by running `pnpm run setup` with the protected database variable available.
 
 ### Navigating/redirecting breaks an embedded app
 

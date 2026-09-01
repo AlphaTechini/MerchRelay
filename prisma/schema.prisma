@@ -14,21 +14,140 @@ datasource db {
 }
 
 model Session {
-  id            String    @id
-  shop          String
-  state         String
-  isOnline      Boolean   @default(false)
-  scope         String?
-  expires       DateTime?
-  accessToken   String
-  userId        BigInt?
-  firstName     String?
-  lastName      String?
-  email         String?
-  accountOwner  Boolean   @default(false)
-  locale        String?
-  collaborator  Boolean?  @default(false)
-  emailVerified Boolean?  @default(false)
+  id                  String    @id
+  shop                String
+  state               String
+  isOnline            Boolean   @default(false)
+  scope               String?
+  expires             DateTime?
+  accessToken         String
+  userId              BigInt?
+  firstName           String?
+  lastName            String?
+  email               String?
+  accountOwner        Boolean   @default(false)
+  locale              String?
+  collaborator        Boolean?  @default(false)
+  emailVerified       Boolean?  @default(false)
   refreshToken        String?
   refreshTokenExpires DateTime?
+}
+
+model MerchantSession {
+  id           String          @id @default(cuid())
+  shop         String
+  goal         String?
+  status       String          @default("active")
+  periodStart  DateTime?
+  periodEnd    DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  researchRuns ResearchRun[]
+  proposals    Proposal[]
+  activity     ActivityEntry[]
+
+  @@index([shop, createdAt])
+}
+
+model ResearchRun {
+  id          String           @id @default(cuid())
+  shop        String
+  sessionId   String?
+  session     MerchantSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  source      String
+  query       String
+  status      String           @default("completed")
+  resultMeta  Json?
+  startedAt   DateTime         @default(now())
+  completedAt DateTime?
+
+  @@index([shop, startedAt])
+}
+
+model Proposal {
+  id                String             @id @default(cuid())
+  shop              String
+  sessionId         String?
+  session           MerchantSession?   @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  type              String
+  title             String
+  rationale         String
+  internalEvidence  Json
+  externalEvidence  Json?
+  affectedProductId String?
+  status            String             @default("pending")
+  currentRevision   Int                @default(1)
+  risk              String?
+  uncertainty       String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  revisions         ProposalRevision[]
+  decisions         ProposalDecision[]
+  executions        Execution[]
+  activity          ActivityEntry[]
+
+  @@index([shop, status, createdAt])
+}
+
+model ProposalRevision {
+  id              String             @id @default(cuid())
+  proposalId      String
+  proposal        Proposal           @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  revision        Int
+  beforeState     Json
+  proposedChanges Json
+  createdAt       DateTime           @default(now())
+  decisions       ProposalDecision[]
+  executions      Execution[]
+
+  @@unique([proposalId, revision])
+}
+
+model ProposalDecision {
+  id         String           @id @default(cuid())
+  proposalId String
+  proposal   Proposal         @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  revisionId String
+  revision   ProposalRevision @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+  decision   String
+  actor      String           @default("merchant")
+  notes      String?
+  createdAt  DateTime         @default(now())
+
+  @@index([proposalId, createdAt])
+}
+
+model Execution {
+  id          String           @id @default(cuid())
+  shop        String
+  proposalId  String
+  proposal    Proposal         @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  revisionId  String
+  revision    ProposalRevision @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+  resourceId  String?
+  status      String           @default("pending")
+  beforeState Json?
+  afterState  Json?
+  error       String?
+  startedAt   DateTime         @default(now())
+  completedAt DateTime?
+
+  @@index([shop, startedAt])
+}
+
+model ActivityEntry {
+  id         String           @id @default(cuid())
+  shop       String
+  sessionId  String?
+  session    MerchantSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  proposalId String?
+  proposal   Proposal?        @relation(fields: [proposalId], references: [id], onDelete: SetNull)
+  actor      String
+  tool       String?
+  type       String
+  summary    String
+  metadata   Json?
+  createdAt  DateTime         @default(now())
+
+  @@index([shop, createdAt])
 }
