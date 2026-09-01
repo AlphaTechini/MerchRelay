@@ -21,7 +21,7 @@ const tools = [
       "Read the authenticated merchant store, products, inventory, locations, and recent orders.",
     inputSchema: { type: "object", properties: {} },
     annotations: { readOnlyHint: true },
-    execute: () => callTool("/api/opportunities"),
+    execute: () => callTool("/api/context?days=30"),
   },
   {
     name: "analyze_store_performance",
@@ -40,7 +40,23 @@ const tools = [
       "Identify evidence-backed merchant opportunities without changing Shopify data.",
     inputSchema: { type: "object", properties: {} },
     annotations: { readOnlyHint: true },
-    execute: () => callTool("/api/context?days=30"),
+    execute: () => callTool("/api/opportunities"),
+  },
+  {
+    name: "rank_products_by_category",
+    description:
+      "Rank the merchant's own products by category using verified order performance.",
+    inputSchema: {
+      type: "object",
+      properties: { category: { type: "string" } },
+    },
+    annotations: { readOnlyHint: true },
+    execute: ({ category } = {}) =>
+      callTool(
+        category
+          ? `/api/rank?category=${encodeURIComponent(category)}`
+          : "/api/rank",
+      ),
   },
   {
     name: "research_product_category",

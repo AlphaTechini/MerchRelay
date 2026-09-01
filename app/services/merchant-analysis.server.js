@@ -45,6 +45,18 @@ const MERCHANT_QUERY = `#graphql
   }
 `;
 
+const SHOPIFYQL_QUERY = `#graphql
+  query MerchRelaySalesReport($query: String!) {
+    shopifyqlQuery(query: $query) {
+      tableData {
+        columns { name dataType displayName }
+        rows
+      }
+      parseErrors
+    }
+  }
+`;
+
 function dateQuery(days) {
   const start = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
   return `created_at:>=${start.toISOString()}`;
@@ -166,11 +178,36 @@ function buildAnalysis(data, cost, days) {
   };
 }
 
+async function getSalesReport(admin, days) {
+  const query = `FROM sales SHOW total_sales, net_sales, orders, average_order_value TIMESERIES day SINCE startOfDay(-${days}d) UNTIL today ORDER BY day ASC`;
+
+  try {
+    const result = await executeAdminGraphql(admin, SHOPIFYQL_QUERY, { query });
+    const report = result.data.shopifyqlQuery;
+    if (report.parseErrors?.length || !report.tableData) {
+      return { available: false, errors: report.parseErrors || [] };
+    }
+    return {
+      available: true,
+      columns: report.tableData.columns,
+      rows: report.tableData.rows,
+      cost: summarizeCost(result.cost),
+    };
+  } catch (error) {
+    return {
+      available: false,
+      errors: ["ShopifyQL reporting is unavailable for this app session."],
+    };
+  }
+}
+
 export async function getMerchantAnalysis(admin, days = 30) {
   const result = await executeAdminGraphql(admin, MERCHANT_QUERY, {
     ordersQuery: dateQuery(days),
   });
-  return buildAnalysis(result.data, result.cost, days);
+  const analysis = buildAnalysis(result.data, result.cost, days);
+  analysis.reporting = await getSalesReport(admin, days);
+  return analysis;
 }
 
 export async function getOrCreateMerchantSession(shop, goal) {

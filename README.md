@@ -98,9 +98,9 @@ pnpm run build
 
 ## Hosting
 
-The production target is Vercel. Set the server-only Shopify variables, `DB_PRISMA_DATABASE_URL`, and the Global Catalog variables in the Vercel project settings. Pushes to `main` trigger the Vercel build defined in `vercel.json`.
+The production target is Vercel. Set the server-only Shopify variables, `DB_PRISMA_DATABASE_URL`, and `CATALOG_ENDPOINT` in the Vercel project settings. Pushes to `main` trigger the Vercel build defined in `vercel.json`.
 
-Global Catalog uses `CATALOG_CLIENT_ID`, `CATALOG_API_KEY`, and `CATALOG_ENDPOINT`. The standard endpoint is `https://catalog.shopify.com/api/ucp/mcp`; a saved catalog identifier can be added to requests later.
+Global Catalog uses the UCP endpoint `https://catalog.shopify.com/api/ucp/mcp` and the server-side agent profile defined in `app/services/catalog.server.js`. No Catalog-specific API key or token exchange is used. A saved catalog identifier can be added to requests later.
 
 See [Shopify deployment documentation](https://shopify.dev/docs/apps/launch/deployment) for platform requirements.
 

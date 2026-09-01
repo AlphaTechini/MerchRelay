@@ -1,53 +1,16 @@
-const TOKEN_URL = "https://api.shopify.com/auth/access_token";
 const DEFAULT_AGENT_PROFILE =
   "https://shopify.dev/ucp/agent-profiles/2026-04-08/valid-with-capabilities.json";
 
-let tokenCache;
-
 function catalogConfiguration() {
-  const clientId = process.env.CATALOG_CLIENT_ID?.trim();
-  const apiKey = process.env.CATALOG_API_KEY?.trim();
   const endpoint = process.env.CATALOG_ENDPOINT?.trim();
 
-  if (!clientId || !apiKey || !endpoint) {
+  if (!endpoint) {
     throw new Error(
-      "Global Catalog requires CATALOG_CLIENT_ID, CATALOG_API_KEY, and CATALOG_ENDPOINT in the server environment.",
+      "Global Catalog requires CATALOG_ENDPOINT in the server environment.",
     );
   }
 
-  return { clientId, apiKey, endpoint };
-}
-
-async function getAccessToken() {
-  const { clientId, apiKey } = catalogConfiguration();
-  if (tokenCache && tokenCache.expiresAt > Date.now() + 60_000) {
-    return tokenCache.value;
-  }
-
-  const response = await fetch(TOKEN_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      client_id: clientId,
-      client_secret: apiKey,
-      grant_type: "client_credentials",
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error("Global Catalog authentication failed.");
-  }
-
-  const payload = await response.json();
-  if (!payload.access_token) {
-    throw new Error("Global Catalog authentication returned no access token.");
-  }
-
-  tokenCache = {
-    value: payload.access_token,
-    expiresAt: Date.now() + (payload.expires_in || 3600) * 1000,
-  };
-  return tokenCache.value;
+  return { endpoint };
 }
 
 export async function searchGlobalCatalog({
@@ -57,7 +20,6 @@ export async function searchGlobalCatalog({
   limit = 10,
 }) {
   const { endpoint } = catalogConfiguration();
-  const token = await getAccessToken();
   const catalog = {
     query,
     filters,
@@ -69,7 +31,6 @@ export async function searchGlobalCatalog({
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({

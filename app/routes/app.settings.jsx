@@ -11,11 +11,7 @@ export async function loader({ request }) {
     appUrl: process.env.SHOPIFY_APP_URL || "",
     scopes: process.env.SCOPES || "",
     databaseConfigured: Boolean(process.env.DB_PRISMA_DATABASE_URL),
-    catalogConfigured: Boolean(
-      process.env.CATALOG_CLIENT_ID &&
-      process.env.CATALOG_API_KEY &&
-      process.env.CATALOG_ENDPOINT,
-    ),
+    catalogConfigured: Boolean(process.env.CATALOG_ENDPOINT),
   };
 }
 

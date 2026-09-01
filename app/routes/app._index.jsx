@@ -146,6 +146,34 @@ export default function Index() {
         </Card>
       </div>
 
+      <Card
+        title="Sales trend"
+        detail={
+          analysis.reporting.available
+            ? "ShopifyQL report"
+            : "Order-based fallback"
+        }
+      >
+        {analysis.reporting.available ? (
+          <ul className="workspace-list">
+            {analysis.reporting.rows.slice(-10).map((row, index) => (
+              <li
+                className="workspace-list-item"
+                key={`${JSON.stringify(row)}-${index}`}
+              >
+                <span>{Object.values(row).join(" - ")}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="workspace-callout">
+            ShopifyQL reporting is not available for this session. MerchRelay is
+            using recent order line items instead and will not invent conversion
+            or traffic metrics.
+          </div>
+        )}
+      </Card>
+
       <Card title="Research" detail="External evidence">
         <ResearchConsole compact />
       </Card>
