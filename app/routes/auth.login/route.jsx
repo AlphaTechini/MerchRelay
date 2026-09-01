@@ -1,5 +1,6 @@
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 import { redirect, Form, useActionData, useLoaderData } from "react-router";
+import ThemeShell from "../../components/theme-shell";
 import { getConfiguredShop, login } from "../../shopify.server";
 import { loginErrorMessage } from "./error.server";
 
@@ -44,16 +45,20 @@ export default function Auth() {
 
   return (
     <AppProvider embedded={false}>
-      <s-page>
-        <Form method="post">
-          <s-section heading="Log in">
-            <input type="hidden" name="shop" value={shop} />
-            <s-paragraph>Continue to Flash Store to authenticate.</s-paragraph>
-            {errors.shop && <s-text tone="critical">{errors.shop}</s-text>}
-            <s-button type="submit">Continue to Flash Store</s-button>
-          </s-section>
-        </Form>
-      </s-page>
+      <ThemeShell>
+        <s-page>
+          <Form method="post">
+            <s-section heading="Log in">
+              <input type="hidden" name="shop" value={shop} />
+              <s-paragraph>
+                Continue to Flash Store to authenticate.
+              </s-paragraph>
+              {errors.shop && <s-text tone="critical">{errors.shop}</s-text>}
+              <s-button type="submit">Continue to Flash Store</s-button>
+            </s-section>
+          </Form>
+        </s-page>
+      </ThemeShell>
     </AppProvider>
   );
 }

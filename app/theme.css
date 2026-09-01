@@ -1,0 +1,79 @@
+:root {
+  color-scheme: light;
+  --mr-background: #f4f7f8;
+  --mr-surface: #ffffff;
+  --mr-surface-muted: #e9f0f2;
+  --mr-text: #102a2e;
+  --mr-text-muted: #456269;
+  --mr-border: #b9cdd1;
+  --mr-accent: #096b70;
+  --mr-accent-hover: #07575b;
+  --mr-accent-text: #ffffff;
+  --mr-focus: #f08a24;
+}
+
+:root[data-merch-theme="dark"] {
+  color-scheme: dark;
+  --mr-background: #101b1e;
+  --mr-surface: #18282c;
+  --mr-surface-muted: #22383d;
+  --mr-text: #f2f8f8;
+  --mr-text-muted: #c1d5d8;
+  --mr-border: #4f6d73;
+  --mr-accent: #72e0d1;
+  --mr-accent-hover: #9aeee3;
+  --mr-accent-text: #082326;
+  --mr-focus: #ffc064;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+  background: var(--mr-background);
+  color: var(--mr-text);
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--mr-focus);
+  outline-offset: 2px;
+}
+
+.theme-shell {
+  min-height: 100vh;
+  background: var(--mr-background);
+  color: var(--mr-text);
+}
+
+.theme-toggle {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.5rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--mr-border);
+  border-radius: 999px;
+  background: var(--mr-surface);
+  color: var(--mr-text);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 700;
+  box-shadow: 0 0.4rem 1rem rgb(5 35 39 / 12%);
+}
+
+.theme-toggle:hover {
+  border-color: var(--mr-accent);
+  color: var(--mr-accent-hover);
+}
