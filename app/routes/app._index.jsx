@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
-import { useFetcher, useLoaderData, useRevalidator } from "react-router";
+import { useLoaderData, useRevalidator } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
-import WebMcpTools from "../components/webmcp-tools";
+import ProposalCard from "../components/proposal-card";
+import ResearchConsole from "../components/research-console";
+import { Badge, Card, WorkspacePage } from "../components/workspace-page";
 import {
   getMerchantAnalysis,
   getOrCreateMerchantSession,
@@ -45,360 +46,145 @@ function money(amount, currency) {
   }).format(amount / 100);
 }
 
-function ProposalCard({ proposal }) {
-  const decisionFetcher = useFetcher();
-  const executionFetcher = useFetcher();
-  const revisionFetcher = useFetcher();
-  const revalidator = useRevalidator();
-  const [editing, setEditing] = useState(false);
-  const [editedTitle, setEditedTitle] = useState(
-    revision?.proposedChanges?.title || "",
-  );
-  const revision = proposal.revisions[0];
-  const decision = proposal.decisions[0];
-  const execution = proposal.executions[0];
-  const canReview = proposal.status === "pending";
-  const canExecute = proposal.status === "approved";
-
-  useEffect(() => {
-    if (decisionFetcher.state === "idle" && decisionFetcher.data?.proposal) {
-      revalidator.revalidate();
-    }
-  }, [decisionFetcher.data, decisionFetcher.state, revalidator]);
-
-  useEffect(() => {
-    if (executionFetcher.state === "idle" && executionFetcher.data?.execution) {
-      revalidator.revalidate();
-    }
-  }, [executionFetcher.data, executionFetcher.state, revalidator]);
-
-  useEffect(() => {
-    if (revisionFetcher.state === "idle" && revisionFetcher.data?.revision) {
-      setEditing(false);
-      revalidator.revalidate();
-    }
-  }, [revisionFetcher.data, revisionFetcher.state, revalidator]);
-
+function Metric({ label, value, detail }) {
   return (
-    <s-box
-      padding="base"
-      borderWidth="base"
-      borderRadius="base"
-      background="subdued"
-    >
-      <s-stack direction="block" gap="base">
-        <s-stack direction="inline" gap="base">
-          <s-heading>{proposal.title}</s-heading>
-          <s-badge
-            tone={proposal.status === "approved" ? "success" : "neutral"}
-          >
-            {proposal.status}
-          </s-badge>
-        </s-stack>
-        <s-paragraph>{proposal.rationale}</s-paragraph>
-        <s-paragraph>
-          <s-text emphasis="bold">Proposed changes: </s-text>
-          {Object.entries(revision.proposedChanges)
-            .map(
-              ([key, value]) =>
-                `${key}: ${Array.isArray(value) ? value.join(", ") : value}`,
-            )
-            .join(" | ")}
-        </s-paragraph>
-        <s-paragraph>
-          <s-text emphasis="bold">Risk: </s-text>
-          {proposal.risk || "Not specified."}
-        </s-paragraph>
-        <s-paragraph>
-          <s-text emphasis="bold">Internal evidence: </s-text>
-          {JSON.stringify(proposal.internalEvidence)}
-        </s-paragraph>
-        {proposal.externalEvidence && (
-          <s-paragraph>
-            <s-text emphasis="bold">External evidence: </s-text>
-            {JSON.stringify(proposal.externalEvidence)}
-          </s-paragraph>
-        )}
-        <s-stack direction="inline" gap="base">
-          {canReview && (
-            <>
-              <s-button
-                variant="secondary"
-                onClick={() => setEditing(!editing)}
-              >
-                {editing ? "Cancel edit" : "Edit title proposal"}
-              </s-button>
-              <s-button
-                onClick={() =>
-                  decisionFetcher.submit(
-                    { decision: "approved" },
-                    {
-                      method: "post",
-                      action: `/api/proposals/${proposal.id}/decide`,
-                      encType: "application/json",
-                    },
-                  )
-                }
-              >
-                Approve proposal
-              </s-button>
-              <s-button
-                variant="secondary"
-                onClick={() =>
-                  decisionFetcher.submit(
-                    { decision: "rejected" },
-                    {
-                      method: "post",
-                      action: `/api/proposals/${proposal.id}/decide`,
-                      encType: "application/json",
-                    },
-                  )
-                }
-              >
-                Reject
-              </s-button>
-            </>
-          )}
-          {canExecute && (
-            <s-button
-              onClick={() =>
-                executionFetcher.submit(
-                  {},
-                  {
-                    method: "post",
-                    action: `/api/proposals/${proposal.id}/execute`,
-                    encType: "application/json",
-                  },
-                )
-              }
-            >
-              Apply approved change
-            </s-button>
-          )}
-        </s-stack>
-        {editing && canReview && (
-          <s-stack direction="inline" gap="base">
-            <s-text-field
-              label="Proposed title"
-              value={editedTitle}
-              onChange={(event) => setEditedTitle(event.currentTarget.value)}
-            ></s-text-field>
-            <s-button
-              onClick={() =>
-                revisionFetcher.submit(
-                  { changes: { title: editedTitle } },
-                  {
-                    method: "post",
-                    action: `/api/proposals/${proposal.id}/revise`,
-                    encType: "application/json",
-                  },
-                )
-              }
-            >
-              Save revision
-            </s-button>
-          </s-stack>
-        )}
-        {decision && (
-          <s-paragraph>Merchant decision: {decision.decision}</s-paragraph>
-        )}
-        {execution && <s-paragraph>Execution: {execution.status}</s-paragraph>}
-      </s-stack>
-    </s-box>
+    <div className="workspace-stat">
+      <p className="workspace-label">{label}</p>
+      <p className="workspace-stat-value">{value}</p>
+      <p className="workspace-stat-detail">{detail}</p>
+    </div>
   );
 }
 
 /* eslint-enable react/prop-types */
-
-function ResearchPanel() {
-  const fetcher = useFetcher();
-  const [query, setQuery] = useState("");
-  const products = fetcher.data?.products || [];
-
-  return (
-    <s-section heading="Research workspace">
-      <s-stack direction="block" gap="base">
-        <s-paragraph>
-          Search public Shopify product data for comparable products. Results
-          are external evidence, not competitor performance data.
-        </s-paragraph>
-        <s-stack direction="inline" gap="base">
-          <s-text-field
-            label="Category or research question"
-            value={query}
-            onChange={(event) => setQuery(event.currentTarget.value)}
-          ></s-text-field>
-          <s-button
-            onClick={() =>
-              fetcher.submit(
-                { query },
-                {
-                  method: "post",
-                  action: "/api/research",
-                  encType: "application/json",
-                },
-              )
-            }
-          >
-            Research category
-          </s-button>
-        </s-stack>
-        {fetcher.data?.error && (
-          <s-banner tone="critical">{fetcher.data.error}</s-banner>
-        )}
-        {products.map((product) => (
-          <s-box
-            key={product.id}
-            padding="base"
-            borderWidth="base"
-            borderRadius="base"
-          >
-            <s-stack direction="block" gap="small">
-              <s-heading>{product.title}</s-heading>
-              <s-paragraph>
-                {product.seller?.name || "Unknown seller"} -{" "}
-                {product.priceRange?.min?.currency || ""}{" "}
-                {product.priceRange?.min?.amount || "n/a"}
-              </s-paragraph>
-              {product.url && (
-                <s-link href={product.url} target="_blank">
-                  View public listing
-                </s-link>
-              )}
-            </s-stack>
-          </s-box>
-        ))}
-      </s-stack>
-    </s-section>
-  );
-}
 
 export default function Index() {
   const { analysis, proposals, activity } = useLoaderData();
   const revalidator = useRevalidator();
 
   return (
-    <s-page heading="MerchRelay">
-      <WebMcpTools />
-      <s-button slot="primary-action" onClick={() => revalidator.revalidate()}>
-        Refresh analysis
-      </s-button>
+    <WorkspacePage
+      eyebrow="Merchant intelligence workspace"
+      title="Overview"
+      description="A calm, evidence-first view of what is happening in Flash Store and what the connected agent recommends next."
+      actions={
+        <>
+          <Badge tone="success">Live store</Badge>
+          <button
+            className="workspace-button secondary"
+            type="button"
+            onClick={() => revalidator.revalidate()}
+          >
+            Refresh analysis
+          </button>
+        </>
+      }
+    >
+      <div className="workspace-stat-row">
+        <Metric
+          label="Store"
+          value={analysis.shop.name}
+          detail={analysis.shop.myshopifyDomain}
+        />
+        <Metric
+          label="Recent sales"
+          value={money(analysis.totals.sales, analysis.totals.currency)}
+          detail="Sampled over 30 days"
+        />
+        <Metric
+          label="Orders"
+          value={analysis.totals.orders}
+          detail="Recent order sample"
+        />
+        <Metric
+          label="Products"
+          value={analysis.totals.products}
+          detail="Catalog records reviewed"
+        />
+      </div>
 
-      <s-section heading="Merchant overview">
-        <s-grid
-          gridTemplateColumns="repeat(auto-fit, minmax(150px, 1fr))"
-          gap="base"
-        >
-          <s-box padding="base" borderWidth="base" borderRadius="base">
-            <s-heading>{analysis.shop.name}</s-heading>
-            <s-paragraph>{analysis.shop.myshopifyDomain}</s-paragraph>
-          </s-box>
-          <s-box padding="base" borderWidth="base" borderRadius="base">
-            <s-heading>
-              {money(analysis.totals.sales, analysis.totals.currency)}
-            </s-heading>
-            <s-paragraph>Recent sales</s-paragraph>
-          </s-box>
-          <s-box padding="base" borderWidth="base" borderRadius="base">
-            <s-heading>{analysis.totals.orders}</s-heading>
-            <s-paragraph>Orders sampled (30 days)</s-paragraph>
-          </s-box>
-          <s-box padding="base" borderWidth="base" borderRadius="base">
-            <s-heading>{analysis.totals.products}</s-heading>
-            <s-paragraph>Products reviewed</s-paragraph>
-          </s-box>
-        </s-grid>
-      </s-section>
-
-      <s-section heading="Performance signals">
-        <s-stack direction="block" gap="base">
-          <s-heading>Top categories</s-heading>
-          {analysis.topCategories.length === 0 ? (
-            <s-paragraph>
-              No order history was available for this period.
-            </s-paragraph>
-          ) : (
-            analysis.topCategories.map((category) => (
-              <s-paragraph key={category.name}>
-                <s-text emphasis="bold">{category.name}</s-text>:{" "}
-                {money(category.sales, analysis.totals.currency)} across{" "}
-                {category.products} products
-              </s-paragraph>
-            ))
-          )}
-          <s-heading>Top products</s-heading>
-          {analysis.topProducts.map((product) => (
-            <s-paragraph key={product.id}>
-              <s-text emphasis="bold">{product.title}</s-text>: {product.units}{" "}
-              units, {money(product.sales, analysis.totals.currency)}
-            </s-paragraph>
-          ))}
-          {analysis.inventoryAlerts.length > 0 && (
-            <s-banner tone="warning" heading="Inventory alerts">
-              {analysis.inventoryAlerts
-                .map((product) => `${product.title} is out of stock.`)
-                .join(" ")}
-            </s-banner>
-          )}
-        </s-stack>
-      </s-section>
-
-      <s-section heading="Opportunity candidates">
-        <s-stack direction="block" gap="base">
-          {analysis.opportunities.length === 0 ? (
-            <s-paragraph>
-              No immediate listing or inventory opportunities were detected.
-            </s-paragraph>
-          ) : (
-            analysis.opportunities.map((opportunity) => (
-              <s-paragraph key={`${opportunity.type}-${opportunity.productId}`}>
-                <s-text emphasis="bold">{opportunity.title}</s-text>:{" "}
-                {opportunity.reason}
-              </s-paragraph>
-            ))
-          )}
-          <s-heading>Draft products available for review</s-heading>
-          {analysis.products
-            .filter((product) => product.status === "DRAFT")
-            .map((product) => (
-              <s-paragraph key={product.id}>
-                <s-text emphasis="bold">{product.title}</s-text>: {product.id}
-              </s-paragraph>
+      <div className="workspace-grid-2">
+        <Card title="Performance signals" detail="Verified store data">
+          <ul className="workspace-list">
+            {analysis.topCategories.length === 0 && (
+              <li className="workspace-empty">
+                No order history was available for this period.
+              </li>
+            )}
+            {analysis.topCategories.slice(0, 5).map((category) => (
+              <li className="workspace-list-item" key={category.name}>
+                <div>
+                  <strong>{category.name}</strong>
+                  <span>{category.products} products</span>
+                </div>
+                <strong>
+                  {money(category.sales, analysis.totals.currency)}
+                </strong>
+              </li>
             ))}
-        </s-stack>
-      </s-section>
+          </ul>
+        </Card>
 
-      <ResearchPanel />
-
-      <s-section heading="Proposal queue">
-        <s-stack direction="block" gap="base">
-          {proposals.length === 0 ? (
-            <s-paragraph>
-              Ask the connected agent to analyze the store and create an
-              evidence-backed proposal.
-            </s-paragraph>
+        <Card title="Inventory watch" detail="Needs attention">
+          {analysis.inventoryAlerts.length === 0 ? (
+            <div className="workspace-empty">
+              No active products are currently flagged as out of stock.
+            </div>
           ) : (
-            proposals.map((proposal) => (
+            <ul className="workspace-list">
+              {analysis.inventoryAlerts.map((product) => (
+                <li className="workspace-list-item" key={product.id}>
+                  <div>
+                    <strong>{product.title}</strong>
+                    <span>Inventory: {product.inventory}</span>
+                  </div>
+                  <Badge tone="warning">Review</Badge>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      </div>
+
+      <Card title="Research" detail="External evidence">
+        <ResearchConsole compact />
+      </Card>
+
+      <Card
+        title="Proposal queue"
+        detail={`${proposals.length} recent proposals`}
+      >
+        {proposals.length === 0 ? (
+          <div className="workspace-empty">
+            Ask the connected agent to create an evidence-backed proposal.
+          </div>
+        ) : (
+          <div className="workspace-stack">
+            {proposals.slice(0, 3).map((proposal) => (
               <ProposalCard key={proposal.id} proposal={proposal} />
-            ))
-          )}
-        </s-stack>
-      </s-section>
+            ))}
+          </div>
+        )}
+      </Card>
 
-      <s-section heading="Session activity" slot="aside">
-        <s-stack direction="block" gap="base">
-          {activity.length === 0 ? (
-            <s-paragraph>No activity recorded yet.</s-paragraph>
-          ) : (
-            activity.map((entry) => (
-              <s-paragraph key={entry.id}>
-                <s-text emphasis="bold">{entry.type}</s-text>: {entry.summary}
-              </s-paragraph>
-            ))
-          )}
-        </s-stack>
-      </s-section>
-    </s-page>
+      <Card title="Recent activity" detail="Latest workspace events">
+        {activity.length === 0 ? (
+          <div className="workspace-empty">No activity recorded yet.</div>
+        ) : (
+          <ul className="workspace-list">
+            {activity.slice(0, 6).map((entry) => (
+              <li className="workspace-list-item" key={entry.id}>
+                <div>
+                  <strong>{entry.type}</strong>
+                  <span>{entry.summary}</span>
+                </div>
+                <span>{new Date(entry.createdAt).toLocaleDateString()}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+    </WorkspacePage>
   );
 }
 

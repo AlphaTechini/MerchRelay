@@ -18,7 +18,12 @@ export default function App() {
     <AppProvider embedded apiKey={apiKey}>
       <ThemeShell>
         <s-app-nav>
-          <s-link href="/app">Home</s-link>
+          <s-link href="/app">Overview</s-link>
+          <s-link href="/app/research">Research</s-link>
+          <s-link href="/app/opportunities">Opportunities</s-link>
+          <s-link href="/app/proposals">Proposals</s-link>
+          <s-link href="/app/activity">Activity</s-link>
+          <s-link href="/app/settings">Settings</s-link>
         </s-app-nav>
         <Outlet />
       </ThemeShell>
