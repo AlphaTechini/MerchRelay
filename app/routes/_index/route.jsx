@@ -24,9 +24,10 @@ export default function App() {
   return (
     <div className={styles.index}>
       <div className={styles.content}>
-        <h1 className={styles.heading}>A short heading about [your app]</h1>
+        <h1 className={styles.heading}>MerchRelay</h1>
         <p className={styles.text}>
-          A tagline about [your app] that describes your value proposition.
+          A merchant intelligence workspace where an agent researches and
+          proposes store improvements while you keep final control.
         </p>
         <Form className={styles.form} method="post" action="/auth/login">
           <input type="hidden" name="shop" value={shop} />
@@ -36,16 +37,16 @@ export default function App() {
         </Form>
         <ul className={styles.list}>
           <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
+            <strong>Analyze</strong> verified products, inventory, orders, and
+            performance signals from your store.
           </li>
           <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
+            <strong>Research</strong> public Shopify catalog patterns and
+            comparable products.
           </li>
           <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
+            <strong>Approve</strong> evidence-backed proposals before any store
+            change is applied.
           </li>
         </ul>
       </div>
