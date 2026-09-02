@@ -9,6 +9,9 @@ app/
 prisma/
   schema.prisma     Shopify session and MerchRelay persistence models.
   migrations/       PostgreSQL schema migrations.
+public/
+  .well-known/      Public UCP platform profile.
+  favicon.ico       Browser favicon.
 shopify.app.toml    Shopify app identity, scopes, webhooks, and app URL.
   vercel.json         Vercel build and migration command.
   .agents/            Confirmed implementation decisions.
@@ -31,6 +34,8 @@ To find Global Catalog authentication and search visit [catalog.server.js](file:
 To find proposal approval, execution, and verification visit [proposals.server.js](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/services/proposals.server.js).
 
 To find external agent pairing security visit [agent-pairing.server.js](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/services/agent-pairing.server.js).
+
+To find public UCP discovery visit [ucp](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/public/.well-known/ucp).
 
 To find persistence models visit [schema.prisma](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/prisma/schema.prisma).
 

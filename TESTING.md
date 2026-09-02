@@ -300,7 +300,7 @@ Expected result: the agent cannot replace a description it did not first inspect
 4. Confirm each result contains `priceDisplay` alongside the raw UCP `priceRange` amount.
 5. Confirm an amount such as `34999` with currency `USD` is displayed as `$349.99`.
 
-Expected result: the profile is a valid platform-agent declaration used by MerchRelay's Catalog requests. Raw UCP price amounts remain available for machine use while the UI and agent receive an unambiguous human-readable price.
+Expected result: the profile is served as public JSON with `Content-Type: application/json` and is a valid platform-agent declaration used by MerchRelay's Catalog requests. Raw UCP price amounts remain available for machine use while the UI and agent receive an unambiguous human-readable price.
 
 ## Troubleshooting
 

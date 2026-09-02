@@ -22,7 +22,7 @@ To find the one-time external agent connection entry visit [agent.connect.jsx](f
 
 To find paired-agent scoped API routes visit [agent-api.context.jsx](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/routes/agent-api.context.jsx).
 
-To find the public UCP platform profile visit [ucp-profile.jsx](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/routes/ucp-profile.jsx).
+The public UCP platform profile can be found in [public/.well-known/ucp](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/public/.well-known/ucp).
 
 To find the approved execution and automatic verification connection visit [api.proposals.$id.execute.jsx](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/routes/api.proposals.$id.execute.jsx).
 
