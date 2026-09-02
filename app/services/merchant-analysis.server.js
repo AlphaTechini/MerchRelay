@@ -58,7 +58,11 @@ const SHOPIFYQL_QUERY = `#graphql
 `;
 
 function reportingError(error) {
-  const message = error.errors?.map((item) => item.message).join(" ") || "";
+  const message =
+    error.errors?.map((item) => item.message).join(" ") ||
+    (error.message === "Shopify Admin GraphQL request failed."
+      ? ""
+      : error.message || "");
   const normalized = message.toLowerCase();
 
   if (
@@ -82,8 +86,9 @@ function reportingError(error) {
   if (message) return { code: "shopifyql_error", message };
 
   return {
-    code: "shopifyql_unavailable",
-    message: "ShopifyQL reporting is unavailable for this app session.",
+    code: "shopifyql_response_error",
+    message:
+      "Shopify returned no usable ShopifyQL response. Check the deployed app logs for the request failure.",
   };
 }
 
@@ -213,7 +218,17 @@ async function getSalesReport(admin, days) {
 
   try {
     const result = await executeAdminGraphql(admin, SHOPIFYQL_QUERY, { query });
-    const report = result.data.shopifyqlQuery;
+    const report = result.data?.shopifyqlQuery;
+    if (!report) {
+      return {
+        available: false,
+        error: {
+          code: "shopifyql_empty_response",
+          message:
+            "Shopify returned an empty ShopifyQL response for this session.",
+        },
+      };
+    }
     if (report.parseErrors?.length) {
       return {
         available: false,
