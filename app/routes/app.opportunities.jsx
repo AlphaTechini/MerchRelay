@@ -1,6 +1,7 @@
 import { useLoaderData } from "react-router";
 import { authenticate } from "../shopify.server";
 import { Badge, Card, WorkspacePage } from "../components/workspace-page";
+import ProposalComposer from "../components/proposal-composer";
 import { getMerchantAnalysis } from "../services/merchant-analysis.server";
 
 export async function loader({ request }) {
@@ -63,6 +64,14 @@ export default function OpportunitiesPage() {
               ))}
           </ul>
         )}
+      </Card>
+      <Card title="Create a merchant proposal" detail="Draft product only">
+        <ProposalComposer
+          products={analysis.products.filter(
+            (product) => product.status === "DRAFT",
+          )}
+          recommendedResearch={analysis.recommendedResearch}
+        />
       </Card>
     </WorkspacePage>
   );

@@ -146,6 +146,12 @@
   gap: 1rem;
 }
 
+.workspace-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
 .workspace-stack {
   display: grid;
   gap: 1rem;
@@ -220,7 +226,8 @@
 }
 
 .workspace-input,
-.workspace-textarea {
+.workspace-textarea,
+.workspace-page select {
   width: 100%;
   box-sizing: border-box;
   padding: 0.75rem 0.85rem;
@@ -230,9 +237,27 @@
   color: var(--mr-text);
 }
 
+.workspace-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.85rem 0;
+  color: var(--mr-text);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 .workspace-textarea {
   min-height: 8rem;
   resize: vertical;
+}
+
+.workspace-stack > label {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--mr-text);
+  font-size: 0.88rem;
+  font-weight: 700;
 }
 
 .workspace-input::placeholder,
@@ -337,7 +362,8 @@
   }
 
   .workspace-stat-row,
-  .workspace-grid-2 {
+  .workspace-grid-2,
+  .workspace-grid-3 {
     grid-template-columns: 1fr 1fr;
   }
 
@@ -348,7 +374,8 @@
 
 @media (max-width: 32rem) {
   .workspace-stat-row,
-  .workspace-grid-2 {
+  .workspace-grid-2,
+  .workspace-grid-3 {
     grid-template-columns: 1fr;
   }
 

@@ -183,6 +183,91 @@ export async function decideProposal({ shop, proposalId, decision, notes }) {
   return updated.changedProposal;
 }
 
+export async function approveProposals({ shop, proposalIds }) {
+  const uniqueIds = [...new Set(proposalIds || [])].slice(0, 20);
+  if (uniqueIds.length === 0) {
+    throw new Error("Select at least one pending proposal to approve.");
+  }
+
+  const proposals = await prisma.proposal.findMany({
+    where: { id: { in: uniqueIds }, shop },
+    include: { revisions: { orderBy: { revision: "desc" }, take: 1 } },
+  });
+  if (proposals.length !== uniqueIds.length) {
+    throw new Error(
+      "One or more selected proposals do not belong to this shop.",
+    );
+  }
+  if (proposals.some((proposal) => proposal.status !== "pending")) {
+    throw new Error("Only pending proposals can be batch approved.");
+  }
+
+  await prisma.$transaction(async (transaction) => {
+    for (const proposal of proposals) {
+      await transaction.proposalDecision.create({
+        data: {
+          proposalId: proposal.id,
+          revisionId: proposal.revisions[0].id,
+          decision: "approved",
+        },
+      });
+      await transaction.proposal.update({
+        where: { id: proposal.id },
+        data: { status: "approved" },
+      });
+    }
+  });
+
+  await Promise.all(
+    proposals.map((proposal) =>
+      recordActivity({
+        shop,
+        proposalId: proposal.id,
+        actor: "merchant",
+        tool: "merchant_batch_review",
+        type: "proposal_approved",
+        summary: `Batch approved revision ${proposal.revisions[0].revision}`,
+        metadata: { revision: proposal.revisions[0].revision },
+      }),
+    ),
+  );
+
+  return {
+    count: proposals.length,
+    proposalIds: proposals.map((proposal) => proposal.id),
+  };
+}
+
+export async function cancelApprovedProposal({ shop, proposalId }) {
+  const proposal = await prisma.proposal.findFirst({
+    where: { id: proposalId, shop },
+    include: { executions: { take: 1 } },
+  });
+  if (!proposal) throw new Error("Proposal not found for this shop.");
+  if (proposal.status !== "approved") {
+    throw new Error("Only approved proposals can be cancelled.");
+  }
+  if (proposal.executions.length > 0) {
+    throw new Error("A proposal cannot be cancelled after execution begins.");
+  }
+
+  const cancelled = await prisma.proposal.update({
+    where: { id: proposal.id },
+    data: { status: "cancelled" },
+  });
+  await recordActivity({
+    shop,
+    proposalId,
+    actor: "merchant",
+    tool: "merchant_review",
+    type: "proposal_cancelled",
+    summary: "Cancelled before Shopify execution.",
+    metadata: null,
+  });
+
+  return cancelled;
+}
+
 export async function reviseProposal({ admin, shop, proposalId, changes }) {
   const proposal = await prisma.proposal.findFirst({
     where: { id: proposalId, shop },
@@ -326,26 +411,39 @@ export async function verifyProposalExecution({ admin, shop, proposalId }) {
   });
   if (!execution?.resourceId)
     throw new Error("No execution exists for this proposal.");
-  const product = await getProduct(admin, execution.resourceId);
-  const expected = execution.afterState;
-  const verified =
-    execution.status === "completed" &&
-    expected &&
-    product.title === expected.title &&
-    product.descriptionHtml === expected.descriptionHtml &&
-    JSON.stringify(product.tags) === JSON.stringify(expected.tags);
+  try {
+    const product = await getProduct(admin, execution.resourceId);
+    const expected = execution.afterState;
+    const verified =
+      execution.status === "completed" &&
+      expected &&
+      product.title === expected.title &&
+      product.descriptionHtml === expected.descriptionHtml &&
+      JSON.stringify(product.tags) === JSON.stringify(expected.tags);
 
-  await recordActivity({
-    shop,
-    proposalId,
-    actor: "agent",
-    tool: "verify_applied_changes",
-    type: "proposal_verified",
-    summary: verified
-      ? "Shopify state matches the approved result."
-      : "Shopify state differs from the recorded result.",
-    metadata: { executionId: execution.id, verified },
-  });
+    await recordActivity({
+      shop,
+      proposalId,
+      actor: "agent",
+      tool: "verify_applied_changes",
+      type: "proposal_verified",
+      summary: verified
+        ? "Shopify state matches the approved result."
+        : "Shopify state differs from the recorded result.",
+      metadata: { executionId: execution.id, verified },
+    });
 
-  return { verified, product: productState(product), cost: null };
+    return { verified, product: productState(product), cost: null };
+  } catch (error) {
+    await recordActivity({
+      shop,
+      proposalId,
+      actor: "agent",
+      tool: "verify_applied_changes",
+      type: "proposal_verification_failed",
+      summary: "Shopify verification could not complete after execution.",
+      metadata: { executionId: execution.id },
+    });
+    return { verified: false, error: error.message, product: null, cost: null };
+  }
 }

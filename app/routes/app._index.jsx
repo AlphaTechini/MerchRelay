@@ -43,7 +43,7 @@ function money(amount, currency) {
     style: "currency",
     currency,
     maximumFractionDigits: 2,
-  }).format(amount / 100);
+  }).format(amount);
 }
 
 function Metric({ label, value, detail }) {
@@ -70,6 +70,9 @@ export default function Index() {
       actions={
         <>
           <Badge tone="success">Live store</Badge>
+          <Badge>
+            Synced {new Date(analysis.generatedAt).toLocaleTimeString()}
+          </Badge>
           <button
             className="workspace-button secondary"
             type="button"
@@ -100,6 +103,24 @@ export default function Index() {
           label="Products"
           value={analysis.totals.products}
           detail="Catalog records reviewed"
+        />
+        <Metric
+          label="Average order value"
+          value={
+            analysis.averageOrderValue === null
+              ? "No recent orders"
+              : money(analysis.averageOrderValue, analysis.totals.currency)
+          }
+          detail="Verified recent order sample"
+        />
+        <Metric
+          label="Inventory sell-through"
+          value={
+            analysis.inventorySellThrough === null
+              ? "Not enough data"
+              : `${analysis.inventorySellThrough}%`
+          }
+          detail="Units sold vs. current tracked inventory"
         />
       </div>
 
@@ -146,6 +167,44 @@ export default function Index() {
         </Card>
       </div>
 
+      <div className="workspace-grid-2">
+        <Card title="Top performer" detail="Verified merchant data">
+          {analysis.topProduct ? (
+            <div className="workspace-callout">
+              <strong>{analysis.topProduct.title}</strong>
+              <span>
+                {analysis.topProduct.units} units,{" "}
+                {money(analysis.topProduct.sales, analysis.totals.currency)},{" "}
+                {analysis.topProduct.category}
+              </span>
+            </div>
+          ) : (
+            <div className="workspace-empty">
+              No product has verified recent sales in this period.
+            </div>
+          )}
+        </Card>
+        <Card title="Underperformers" detail="Stock with no recent sales">
+          {analysis.underperformingProducts.length === 0 ? (
+            <div className="workspace-empty">
+              No stocked products are currently flagged by this rule.
+            </div>
+          ) : (
+            <ul className="workspace-list">
+              {analysis.underperformingProducts.slice(0, 5).map((product) => (
+                <li className="workspace-list-item" key={product.id}>
+                  <div>
+                    <strong>{product.title}</strong>
+                    <span>{product.category}</span>
+                  </div>
+                  <span>Inventory: {product.inventory}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      </div>
+
       <Card
         title="Sales trend"
         detail={
@@ -180,6 +239,20 @@ export default function Index() {
             </span>
           </div>
         )}
+      </Card>
+
+      <Card
+        title="Conversion reporting"
+        detail="When ShopifyQL provides session data"
+      >
+        <div className="workspace-callout">
+          <strong>Not queried in this MVP report</strong>
+          <span>
+            MerchRelay currently uses verified sales reporting and does not
+            infer visitor, checkout, or conversion metrics without an explicit
+            ShopifyQL sessions query.
+          </span>
+        </div>
       </Card>
 
       <Card title="Research" detail="External evidence">

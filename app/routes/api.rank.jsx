@@ -13,10 +13,10 @@ export async function loader({ request }) {
     const category = url.searchParams.get("category")?.trim().toLowerCase();
     const analysis = await getMerchantAnalysis(admin, 30);
     const products = category
-      ? analysis.topProducts.filter(
+      ? analysis.rankedProducts.filter(
           (product) => product.category.toLowerCase() === category,
         )
-      : analysis.topProducts;
+      : analysis.rankedProducts.slice(0, 10);
     const merchantSession = await getOrCreateMerchantSession(
       session.shop,
       "Rank products by category.",

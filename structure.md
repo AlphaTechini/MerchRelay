@@ -2,7 +2,7 @@
 
 ```text
 app/
-  components/       Browser WebMCP registration.
+  components/       Browser WebMCP registration and merchant workspace controls.
   routes/           Shopify pages, API handlers, auth, and webhooks.
   services/         Admin GraphQL, merchant analysis, catalog, and proposal logic.
   db.server.js      Prisma client connection.
@@ -10,10 +10,17 @@ prisma/
   schema.prisma     Shopify session and MerchRelay persistence models.
   migrations/       PostgreSQL schema migrations.
 shopify.app.toml    Shopify app identity, scopes, webhooks, and app URL.
-vercel.json         Vercel build and migration command.
+  vercel.json         Vercel build and migration command.
+  .agents/            Confirmed implementation decisions.
 ```
 
 To find WebMCP tool registration visit [webmcp-tools.jsx](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/components/webmcp-tools.jsx).
+
+To find authenticated page and API routing visit [ROUTES.md](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/ROUTES.md).
+
+To find browser workspace components visit [components/README.md](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/components/README.md).
+
+To find confirmed project decisions visit [GUIDE.md](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/.agents/GUIDE.md).
 
 To find merchant context and performance analysis visit [merchant-analysis.server.js](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/services/merchant-analysis.server.js).
 

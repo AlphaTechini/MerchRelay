@@ -8,4 +8,8 @@ To find authenticated Shopify setup visit [shopify.server.js](file:///C:/Hackath
 
 To find the merchant-facing workspace visit [app._index.jsx](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/routes/app._index.jsx).
 
+To find authenticated pages and API handlers visit [ROUTES.md](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/ROUTES.md).
+
+To find browser components visit [components/README.md](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/components/README.md).
+
 The Shopify session connection can be found in [db.server.js](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/db.server.js).

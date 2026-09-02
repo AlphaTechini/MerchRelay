@@ -82,7 +82,7 @@ Expected result: the draft product appears in the safe target list. No product i
 
 ## Test 5: Authenticated Route and WebMCP Read Tools
 
-The UI currently displays and reviews proposals, but proposal creation is exposed through the authenticated API and registered WebMCP tools. The browser console snippets below test the same authenticated routes without exposing credentials.
+The merchant UI now creates, revises, approves, cancels, executes, and verifies proposals. The browser console snippets below remain useful for testing the authenticated API and WebMCP routes without exposing credentials.
 
 Use the console in the MerchRelay frame:
 
@@ -143,53 +143,16 @@ Expected result: products are ordered using verified order performance. An unkno
 
 ## Test 6: Create a Proposal Safely
 
-Use the draft product from Test 4. First retrieve its Shopify product ID:
+Use the draft product from Test 4.
 
-```js
-const context = await fetch("/api/context?days=30").then((response) =>
-  response.json(),
-);
-const draftProducts = context.analysis.products.filter(
-  (product) => product.status === "DRAFT",
-);
-console.table(
-  draftProducts.map(({ id, title, status, productType }) => ({
-    id,
-    title,
-    status,
-    productType,
-  })),
-);
-```
+1. Open `Opportunities`.
+2. In `Create a merchant proposal`, select the `[MerchRelay Test]` draft product.
+3. Enter `Test draft listing title proposal` as the proposal title.
+4. Enter `[MerchRelay Test] Travel Backpack - Approved Title` as the proposed listing title.
+5. Add a short merchant rationale and, if available, a public research note from the Research workspace.
+6. Click `Create proposal`.
 
-Copy the `id` of the `[MerchRelay Test]` product and create a proposal that changes only its title:
-
-```js
-const productId = "PASTE_THE_DRAFT_PRODUCT_ID_HERE";
-const proposalResponse = await fetch("/api/proposals", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    goal: "Test a merchant-approved draft listing title change.",
-    productId,
-    title: "Test draft listing title proposal",
-    changes: { title: "[MerchRelay Test] Travel Backpack - Approved Title" },
-    rationale: "Controlled test of the evidence-backed proposal workflow.",
-    internalEvidence: { source: "Flash Store draft product", productId },
-    externalEvidence: {
-      source: "Manual test fixture",
-      query: "travel backpacks under 150 USD",
-    },
-    risk: "One draft product title changes after explicit approval.",
-    uncertainty:
-      "This is a controlled test and is not intended for publication.",
-  }),
-});
-const proposalPayload = await proposalResponse.json();
-console.log(proposalResponse.status, proposalPayload);
-```
-
-Expected result: HTTP 200 with a proposal whose status is `pending`, an `id`, and one revision. Open `Proposals` and confirm the card shows the proposed title, evidence, risk, uncertainty, and `Approve proposal` and `Reject` controls.
+Expected result: a pending proposal is created and the UI directs you to `Proposals`. Confirm the card shows before-and-after values, evidence, risk, uncertainty, and `Approve proposal` and `Reject` controls.
 
 If the response says `Only draft products can receive the initial MerchRelay proposal`, the selected product is not a draft. Stop and select the correct ID. Do not bypass this guard.
 
@@ -197,7 +160,7 @@ If the response says `Only draft products can receive the initial MerchRelay pro
 
 1. In `Proposals`, locate `Test draft listing title proposal`.
 2. Click `View evidence` and confirm internal and external evidence are visible.
-3. Click `Edit title`.
+3. Click `Edit proposal`.
 4. Change the title to `[MerchRelay Test] Travel Backpack - Approved Title v2`.
 5. Click `Save revision`.
 6. Confirm the card closes edit mode and displays the new proposed title.
@@ -224,24 +187,14 @@ Use the revised pending proposal from Test 7.
 
 1. Before approval, open the matching product in Shopify Admin and record its current title.
 2. Return to MerchRelay and click `Approve proposal`.
-3. Confirm the proposal status changes to `approved` and the `Apply approved change` button appears.
+3. Confirm the proposal status changes to `approved` and the `Apply and verify` button appears.
 4. Confirm an approval activity event appears.
-5. Click `Apply approved change` once.
+5. Click `Apply and verify` once.
 6. Wait for the execution status to appear.
 7. Open the product in Shopify Admin and confirm its title changed to the exact approved title.
 8. Confirm the product remains `Draft`.
-9. In the browser console, call verification using the proposal ID from the proposal response:
-
-```js
-const proposalId = "PASTE_THE_PROPOSAL_ID_HERE";
-const verification = await fetch(
-  `/api/proposals/${encodeURIComponent(proposalId)}/execute`,
-).then((response) => response.json());
-console.log(verification);
-```
-
-10. Confirm `verification.verified` is `true`.
-11. Open `Activity` and confirm `proposal_executed` and `proposal_verified` events exist.
+9. Confirm the proposal card says `Verification: passed`.
+10. Open `Activity` and confirm `proposal_executed` and `proposal_verified` events exist.
 
 Expected result: only the approved revision is applied, the mutation updates one draft product, Shopify is re-read, and the recorded state matches the current state.
 
@@ -274,7 +227,7 @@ Stale-state guard:
 1. Create a proposal for a draft product.
 2. Approve the proposal.
 3. Before executing, manually change that product title in Shopify Admin to another temporary `[MerchRelay Test]` title and save it.
-4. Return to MerchRelay and click `Apply approved change`.
+4. Return to MerchRelay and click `Apply and verify`.
 
 Expected result: execution fails with `The Shopify product changed after approval; the proposal must be reviewed again.` No approved change is applied over the newer Shopify state.
 
@@ -359,8 +312,8 @@ Capture screenshots or notes for these checkpoints:
 
 ## Current Limitations
 
-- Proposal creation is currently exposed through the authenticated API and WebMCP tool, not a dedicated create button in the Opportunities page.
+- Proposal creation is available in Opportunities and through the authenticated WebMCP tool. The initial safe mutation path remains restricted to draft products.
 - The current Global Catalog integration uses the standard UCP endpoint and agent profile. Saved catalog IDs and cursor pagination are not yet exposed in the UI.
-- QStash jobs, webhook reconciliation, retry queues, and background execution are not yet enabled.
+- QStash jobs, retry queues, and unattended background execution are intentionally not enabled. Challenge MVP mutations remain merchant-supervised and synchronous.
 - The current mutation path supports title, description HTML, and tags for one draft product.
 - No automated end-to-end test suite is included; these are manual acceptance steps for the development store.

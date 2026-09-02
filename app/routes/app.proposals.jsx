@@ -1,7 +1,7 @@
 import { useLoaderData } from "react-router";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
-import ProposalCard from "../components/proposal-card";
+import ProposalQueue from "../components/proposal-queue";
 import { Card, WorkspacePage } from "../components/workspace-page";
 
 export async function loader({ request }) {
@@ -34,11 +34,7 @@ export default function ProposalsPage() {
             verified opportunity.
           </div>
         ) : (
-          <div className="workspace-stack">
-            {proposals.map((proposal) => (
-              <ProposalCard key={proposal.id} proposal={proposal} />
-            ))}
-          </div>
+          <ProposalQueue proposals={proposals} />
         )}
       </Card>
     </WorkspacePage>

@@ -3,9 +3,19 @@ import { useFetcher } from "react-router";
 
 /* eslint-disable react/prop-types */
 
-export default function ResearchConsole({ compact = false }) {
+function catalogValue(value) {
+  if (value === null || value === undefined) return "Not provided";
+  if (typeof value === "string" || typeof value === "number") return value;
+  return JSON.stringify(value);
+}
+
+export default function ResearchConsole({
+  compact = false,
+  initialQuery = "",
+  researchContext,
+}) {
   const fetcher = useFetcher();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const products = fetcher.data?.products || [];
 
   return (
@@ -14,6 +24,14 @@ export default function ResearchConsole({ compact = false }) {
         Search the public Shopify catalog for comparable products. Results are
         external evidence and are not treated as merchant performance data.
       </p>
+      {researchContext && (
+        <div className="workspace-callout">
+          <strong>
+            Selected merchant category: {researchContext.category}
+          </strong>
+          <span>{researchContext.reason}</span>
+        </div>
+      )}
       <div className="workspace-inline">
         <input
           className="workspace-input"
@@ -49,6 +67,13 @@ export default function ResearchConsole({ compact = false }) {
             <div>
               <strong>{product.title}</strong>
               <span>{product.seller?.name || "Unknown seller"}</span>
+              <span>Price: {catalogValue(product.priceRange)}</span>
+              {product.availability && (
+                <span>Availability: {catalogValue(product.availability)}</span>
+              )}
+              {product.rating && (
+                <span>Rating: {catalogValue(product.rating)}</span>
+              )}
             </div>
             {product.url && (
               <a href={product.url} target="_blank" rel="noreferrer">
@@ -62,6 +87,12 @@ export default function ResearchConsole({ compact = false }) {
           {products.length} results returned. Open Research for the full
           comparison list.
         </p>
+      )}
+      {!compact && fetcher.data?.messages?.length > 0 && (
+        <div className="workspace-callout">
+          <strong>Catalog notes</strong>
+          <span>{fetcher.data.messages.join(" ")}</span>
+        </div>
       )}
     </div>
   );

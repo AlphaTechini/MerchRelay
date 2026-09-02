@@ -145,6 +145,31 @@ function buildAnalysis(data, cost, days) {
   const topProducts = [...productMetrics.values()]
     .sort((left, right) => right.sales - left.sales)
     .slice(0, 10);
+  const rankedProducts = data.products.nodes
+    .map((product) => {
+      const metric = productMetrics.get(product.id);
+      return {
+        id: product.id,
+        title: product.title,
+        category:
+          product.category?.fullName || product.productType || "Uncategorized",
+        units: metric?.units || 0,
+        sales: metric?.sales || 0,
+        inventory: product.totalInventory,
+        sellThrough:
+          metric?.units || product.totalInventory > 0
+            ? Number(
+                (
+                  ((metric?.units || 0) /
+                    ((metric?.units || 0) +
+                      Math.max(product.totalInventory, 0))) *
+                  100
+                ).toFixed(1),
+              )
+            : null,
+      };
+    })
+    .sort((left, right) => right.sales - left.sales);
   const topCategories = [...categoryMetrics.values()]
     .map((category) => ({ ...category, products: category.products.size }))
     .sort((left, right) => right.sales - left.sales)
@@ -181,8 +206,31 @@ function buildAnalysis(data, cost, days) {
       Number(order.currentTotalPriceSet.shopMoney.amount),
     ),
   );
+  const topCategory = topCategories[0] || null;
+  const topProduct =
+    rankedProducts.find((product) => product.sales > 0) || null;
+  const underperformingProducts = rankedProducts
+    .filter((product) => product.inventory > 0 && product.sales === 0)
+    .slice(0, 10);
+  const totalUnitsSold = sum(rankedProducts.map((product) => product.units));
+  const totalAvailableInventory = sum(
+    rankedProducts.map((product) => Math.max(product.inventory, 0)),
+  );
+  const recommendedResearch = topCategory
+    ? {
+        category: topCategory.name,
+        query: `${topCategory.name} comparable products`,
+        reason: `This is the strongest verified category in the last ${days} days with ${topCategory.units} units and ${topCategory.sales.toFixed(2)} in sales.`,
+      }
+    : {
+        category: "Catalog health",
+        query: "product listing best practices",
+        reason:
+          "No recent category sales were available, so research begins with catalog health instead of a sales claim.",
+      };
 
   return {
+    generatedAt: new Date().toISOString(),
     periodDays: days,
     shop: data.shop,
     totals: {
@@ -194,7 +242,25 @@ function buildAnalysis(data, cost, days) {
       collections: data.collections.nodes.length,
     },
     topProducts,
+    rankedProducts,
     topCategories,
+    topCategory,
+    topProduct,
+    underperformingProducts,
+    averageOrderValue:
+      data.orders.nodes.length > 0
+        ? totalSales / data.orders.nodes.length
+        : null,
+    inventorySellThrough:
+      totalUnitsSold + totalAvailableInventory > 0
+        ? Number(
+            (
+              (totalUnitsSold / (totalUnitsSold + totalAvailableInventory)) *
+              100
+            ).toFixed(1),
+          )
+        : null,
+    recommendedResearch,
     inventoryAlerts,
     opportunities: opportunities.slice(0, 10),
     products: data.products.nodes.map((product) => ({

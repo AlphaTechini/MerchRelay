@@ -34,6 +34,18 @@ export default function ActivityPage() {
                 <div>
                   <strong>{entry.type}</strong>
                   <span>{entry.summary}</span>
+                  <span>
+                    {entry.actor}
+                    {entry.tool ? ` via ${entry.tool}` : ""}
+                  </span>
+                  {entry.metadata && (
+                    <details>
+                      <summary>View event details</summary>
+                      <pre className="workspace-code">
+                        {JSON.stringify(entry.metadata, null, 2)}
+                      </pre>
+                    </details>
+                  )}
                 </div>
                 <span>{new Date(entry.createdAt).toLocaleString()}</span>
               </li>

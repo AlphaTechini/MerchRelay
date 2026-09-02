@@ -3,6 +3,7 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 import { authenticate } from "../shopify.server";
 import ThemeShell from "../components/theme-shell";
+import WebMcpTools from "../components/webmcp-tools";
 
 export const loader = async ({ request }) => {
   await authenticate.admin(request);
@@ -23,8 +24,10 @@ export default function App() {
           <s-link href="/app/opportunities">Opportunities</s-link>
           <s-link href="/app/proposals">Proposals</s-link>
           <s-link href="/app/activity">Activity</s-link>
+          <s-link href="/app/agent">Agent</s-link>
           <s-link href="/app/settings">Settings</s-link>
         </s-app-nav>
+        <WebMcpTools />
         <Outlet />
       </ThemeShell>
     </AppProvider>

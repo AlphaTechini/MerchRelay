@@ -13,7 +13,12 @@ export async function action({ request, params }) {
       shop: session.shop,
       proposalId: params.id,
     });
-    return Response.json({ execution });
+    const verification = await verifyProposalExecution({
+      admin,
+      shop: session.shop,
+      proposalId: params.id,
+    });
+    return Response.json({ execution, verification });
   } catch (error) {
     return jsonError(error);
   }

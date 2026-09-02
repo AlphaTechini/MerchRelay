@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useRevalidator } from "react-router";
 
 async function callTool(path, options = {}) {
   const response = await fetch(path, {
@@ -11,6 +12,7 @@ async function callTool(path, options = {}) {
   });
   const payload = await response.json();
   if (!response.ok) throw new Error(payload.error || "Tool request failed.");
+  window.dispatchEvent(new Event("merchrelay:workspace-updated"));
   return JSON.stringify(payload);
 }
 
@@ -143,6 +145,8 @@ const tools = [
 ];
 
 export default function WebMcpTools() {
+  const revalidator = useRevalidator();
+
   useEffect(() => {
     const modelContext = document.modelContext;
     if (!modelContext?.registerTool) return undefined;
@@ -154,6 +158,16 @@ export default function WebMcpTools() {
 
     return () => controller.abort();
   }, []);
+
+  useEffect(() => {
+    const refreshWorkspace = () => revalidator.revalidate();
+    window.addEventListener("merchrelay:workspace-updated", refreshWorkspace);
+    return () =>
+      window.removeEventListener(
+        "merchrelay:workspace-updated",
+        refreshWorkspace,
+      );
+  }, [revalidator]);
 
   return null;
 }
