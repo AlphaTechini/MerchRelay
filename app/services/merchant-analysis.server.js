@@ -57,6 +57,36 @@ const SHOPIFYQL_QUERY = `#graphql
   }
 `;
 
+function reportingError(error) {
+  const message = error.errors?.map((item) => item.message).join(" ") || "";
+  const normalized = message.toLowerCase();
+
+  if (
+    normalized.includes("level 2") ||
+    normalized.includes("protected customer")
+  ) {
+    return {
+      code: "protected_customer_data",
+      message:
+        "ShopifyQL requires Level 2 protected customer-data access for this app, even for aggregate reports.",
+    };
+  }
+
+  if (normalized.includes("read_reports")) {
+    return {
+      code: "read_reports_scope",
+      message: "The installed app has not been granted the read_reports scope.",
+    };
+  }
+
+  if (message) return { code: "shopifyql_error", message };
+
+  return {
+    code: "shopifyql_unavailable",
+    message: "ShopifyQL reporting is unavailable for this app session.",
+  };
+}
+
 function dateQuery(days) {
   const start = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
   return `created_at:>=${start.toISOString()}`;
@@ -184,8 +214,23 @@ async function getSalesReport(admin, days) {
   try {
     const result = await executeAdminGraphql(admin, SHOPIFYQL_QUERY, { query });
     const report = result.data.shopifyqlQuery;
-    if (report.parseErrors?.length || !report.tableData) {
-      return { available: false, errors: report.parseErrors || [] };
+    if (report.parseErrors?.length) {
+      return {
+        available: false,
+        error: {
+          code: "shopifyql_parse_error",
+          message: report.parseErrors.join(" "),
+        },
+      };
+    }
+    if (!report.tableData) {
+      return {
+        available: false,
+        error: {
+          code: "shopifyql_no_data",
+          message: "ShopifyQL returned no report data for this period.",
+        },
+      };
     }
     return {
       available: true,
@@ -196,7 +241,7 @@ async function getSalesReport(admin, days) {
   } catch (error) {
     return {
       available: false,
-      errors: ["ShopifyQL reporting is unavailable for this app session."],
+      error: reportingError(error),
     };
   }
 }

@@ -167,9 +167,17 @@ export default function Index() {
           </ul>
         ) : (
           <div className="workspace-callout">
-            ShopifyQL reporting is not available for this session. MerchRelay is
-            using recent order line items instead and will not invent conversion
-            or traffic metrics.
+            <strong>
+              {analysis.reporting.error?.code || "reporting_unavailable"}
+            </strong>
+            <span>
+              {analysis.reporting.error?.message ||
+                "ShopifyQL reporting is not available for this session."}
+            </span>
+            <span>
+              MerchRelay is using recent order line items instead and will not
+              invent conversion or traffic metrics.
+            </span>
           </div>
         )}
       </Card>

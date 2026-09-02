@@ -290,6 +290,16 @@
   line-height: 1.5;
 }
 
+.workspace-callout strong,
+.workspace-callout span {
+  display: block;
+}
+
+.workspace-callout strong {
+  margin-bottom: 0.25rem;
+  color: var(--mr-text);
+}
+
 .workspace-error {
   margin-top: 0.75rem;
   color: #a5303a;

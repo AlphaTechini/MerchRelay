@@ -4,6 +4,8 @@ MerchRelay is a merchant-intelligence and store-management workspace built for t
 
 Project structure and logic links are documented in [structure.md](structure.md).
 
+Manual acceptance steps for the current MVP are documented in [TESTING.md](TESTING.md).
+
 The application uses Shopify's official [React Router app template](https://shopify.dev/docs/api/shopify-app-react-router), PostgreSQL-backed Prisma session storage, Shopify Admin GraphQL, Global Catalog MCP, and browser WebMCP tools.
 
 Rather than cloning this repo, follow the [Quick Start steps](https://github.com/Shopify/shopify-app-template-react-router#quick-start).
