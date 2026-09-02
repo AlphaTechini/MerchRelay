@@ -15,9 +15,11 @@
 - Use ShopifyQL for reporting when available and order-line-item analysis only as an explicit fallback.
 - Keep challenge MVP mutations synchronous. Durable queue and retry infrastructure is deferred because it requires external QStash configuration.
 - Restrict first-mutation proposals to draft products and supported listing fields: title, description HTML, and tags.
+- Merchant-created external agent pairings are single-use, expire after eight hours, are revocable, and exchange into an HttpOnly browser cookie. The token is stored only as a hash.
 
 ## Tradeoffs
 
 - Batch approval is supported; batch execution is intentionally not. Each approved Shopify mutation runs and verifies separately so a partial failure cannot be presented as an all-or-nothing bulk update.
 - Conversion metrics remain unavailable until an explicit ShopifyQL sessions query is added. MerchRelay does not infer conversion from sales data.
 - High-impact inventory, pricing, variant, publish, archive, and collection changes are not included in the challenge MVP mutation path.
+- A paired agent can execute only an exact merchant-approved revision. It cannot approve, reject, revise, cancel, batch-review, or create pairings.

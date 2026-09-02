@@ -87,6 +87,8 @@ export async function createProposal({
   externalEvidence,
   risk,
   uncertainty,
+  actor = "agent",
+  tool = "create_research_proposal",
 }) {
   const product = await getProduct(admin, productId);
   if (product.status !== "DRAFT") {
@@ -125,8 +127,8 @@ export async function createProposal({
     shop,
     sessionId,
     proposalId: proposal.id,
-    actor: "agent",
-    tool: "create_research_proposal",
+    actor,
+    tool,
     type: "proposal_created",
     summary: proposal.title,
     metadata: { revision: 1, productId: product.id },
@@ -310,7 +312,13 @@ export async function reviseProposal({ admin, shop, proposalId, changes }) {
   return updated;
 }
 
-export async function executeApprovedProposal({ admin, shop, proposalId }) {
+export async function executeApprovedProposal({
+  admin,
+  shop,
+  proposalId,
+  actor = "agent",
+  tool = "apply_merchant_approved_changes",
+}) {
   const proposal = await prisma.proposal.findFirst({
     where: { id: proposalId, shop },
     include: {
@@ -387,8 +395,8 @@ export async function executeApprovedProposal({ admin, shop, proposalId }) {
     await recordActivity({
       shop,
       proposalId,
-      actor: "agent",
-      tool: "apply_merchant_approved_changes",
+      actor,
+      tool,
       type: "proposal_executed",
       summary: `Updated ${payload.product.title}`,
       metadata: { executionId: completed.id, productId: payload.product.id },
@@ -404,7 +412,13 @@ export async function executeApprovedProposal({ admin, shop, proposalId }) {
   }
 }
 
-export async function verifyProposalExecution({ admin, shop, proposalId }) {
+export async function verifyProposalExecution({
+  admin,
+  shop,
+  proposalId,
+  actor = "agent",
+  tool = "verify_applied_changes",
+}) {
   const execution = await prisma.execution.findFirst({
     where: { shop, proposalId },
     orderBy: { startedAt: "desc" },
@@ -424,8 +438,8 @@ export async function verifyProposalExecution({ admin, shop, proposalId }) {
     await recordActivity({
       shop,
       proposalId,
-      actor: "agent",
-      tool: "verify_applied_changes",
+      actor,
+      tool,
       type: "proposal_verified",
       summary: verified
         ? "Shopify state matches the approved result."
@@ -438,8 +452,8 @@ export async function verifyProposalExecution({ admin, shop, proposalId }) {
     await recordActivity({
       shop,
       proposalId,
-      actor: "agent",
-      tool: "verify_applied_changes",
+      actor,
+      tool,
       type: "proposal_verification_failed",
       summary: "Shopify verification could not complete after execution.",
       metadata: { executionId: execution.id },

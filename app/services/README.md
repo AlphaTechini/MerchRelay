@@ -12,4 +12,8 @@ To find Global Catalog UCP access visit [catalog.server.js](file:///C:/Hackathon
 
 To find proposal lifecycle logic visit [proposals.server.js](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/services/proposals.server.js).
 
+To find hashed, expiring agent pairing and external authentication visit [agent-pairing.server.js](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/services/agent-pairing.server.js).
+
+To find reusable Global Catalog research persistence visit [research.server.js](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/services/research.server.js).
+
 The database connection can be found in [db.server.js](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/db.server.js).

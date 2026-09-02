@@ -16,6 +16,12 @@ To find batch approval and individual proposal review visit [app.proposals.jsx](
 
 To find the agent collaboration view visit [app.agent.jsx](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/routes/app.agent.jsx).
 
+To find merchant-managed external agent pairing visit [app.pairings.jsx](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/routes/app.pairings.jsx).
+
+To find the one-time external agent connection entry visit [agent.connect.jsx](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/routes/agent.connect.jsx).
+
+To find paired-agent scoped API routes visit [agent-api.context.jsx](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/routes/agent-api.context.jsx).
+
 To find the approved execution and automatic verification connection visit [api.proposals.$id.execute.jsx](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/routes/api.proposals.$id.execute.jsx).
 
 The Shopify authentication connection can be found in [shopify.server.js](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/shopify.server.js).

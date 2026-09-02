@@ -25,6 +25,7 @@ export default function App() {
           <s-link href="/app/proposals">Proposals</s-link>
           <s-link href="/app/activity">Activity</s-link>
           <s-link href="/app/agent">Agent</s-link>
+          <s-link href="/app/pairings">Pair agent</s-link>
           <s-link href="/app/settings">Settings</s-link>
         </s-app-nav>
         <WebMcpTools />

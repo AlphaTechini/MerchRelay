@@ -266,6 +266,21 @@ If the inspector does not exist in the browser or AI client, Tests 5 through 10 
 
 Expected result: proposal, activity, session, research, and execution records are scoped by the authenticated shop. A proposal ID from another shop must not be executable in Flash Store.
 
+## Test 13: External Agent Pairing
+
+1. In the authenticated Shopify Admin workspace, open `Pair agent`.
+2. Click `Create pairing link`.
+3. Copy the displayed one-time link into the external agent browser. Do not send it through an untrusted channel.
+4. Confirm the agent browser redirects from `/agent/connect` to `/agent` and shows `MerchRelay agent workspace`.
+5. Confirm the agent workspace states that merchant approval is required.
+6. In a WebMCP-capable agent browser, confirm these tools are exposed: context, performance analysis, opportunities, ranking, research, proposal creation, activity, approved execution, and verification.
+7. Confirm the agent workspace does not expose proposal approval, rejection, revision, cancellation, batch review, or pairing management.
+8. Return to the merchant workspace and confirm the pairing status changes from `waiting` to `active`.
+9. Click `Revoke` and refresh the agent page.
+10. Confirm the agent page says a new merchant-generated pairing link is required and `/agent-api/context` returns an authentication error.
+
+Expected result: the agent receives an eight-hour, single-use, revocable session without a Shopify passkey or Shopify access token. It can apply only exact revisions the merchant has already approved.
+
 ## Troubleshooting
 
 ### The app redirects to login
@@ -315,5 +330,6 @@ Capture screenshots or notes for these checkpoints:
 - Proposal creation is available in Opportunities and through the authenticated WebMCP tool. The initial safe mutation path remains restricted to draft products.
 - The current Global Catalog integration uses the standard UCP endpoint and agent profile. Saved catalog IDs and cursor pagination are not yet exposed in the UI.
 - QStash jobs, retry queues, and unattended background execution are intentionally not enabled. Challenge MVP mutations remain merchant-supervised and synchronous.
+- A merchant must authenticate once to create an external agent pairing. Shopify authentication cannot be bypassed by an agent.
 - The current mutation path supports title, description HTML, and tags for one draft product.
 - No automated end-to-end test suite is included; these are manual acceptance steps for the development store.

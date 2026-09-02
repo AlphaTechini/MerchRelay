@@ -30,6 +30,8 @@ To find Global Catalog authentication and search visit [catalog.server.js](file:
 
 To find proposal approval, execution, and verification visit [proposals.server.js](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/services/proposals.server.js).
 
+To find external agent pairing security visit [agent-pairing.server.js](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/services/agent-pairing.server.js).
+
 To find persistence models visit [schema.prisma](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/prisma/schema.prisma).
 
 The Shopify Admin connection can be found in [shopify.server.js](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/shopify.server.js).

@@ -151,3 +151,17 @@ model ActivityEntry {
 
   @@index([shop, createdAt])
 }
+
+model AgentPairing {
+  id          String   @id @default(cuid())
+  shop        String
+  tokenHash   String   @unique
+  sessionHash String?  @unique
+  expiresAt   DateTime
+  claimedAt   DateTime?
+  revokedAt   DateTime?
+  lastUsedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([shop, expiresAt])
+}
