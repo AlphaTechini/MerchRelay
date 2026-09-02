@@ -55,6 +55,21 @@
   gap: 0.75rem;
 }
 
+.workspace-sync-pair {
+  display: grid;
+  justify-items: end;
+  gap: 0.35rem;
+  margin-left: auto;
+}
+
+.workspace-sync-label {
+  color: var(--mr-text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .workspace-eyebrow,
 .workspace-label {
   margin: 0;
@@ -217,6 +232,9 @@
 }
 
 .workspace-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 2.6rem;
   padding: 0.6rem 0.95rem;
   border: 1px solid var(--mr-accent);
@@ -225,6 +243,12 @@
   color: var(--mr-accent-text);
   cursor: pointer;
   font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.workspace-pair-button {
+  min-width: 8.5rem;
 }
 
 .workspace-button:hover {
@@ -383,6 +407,11 @@
   .workspace-header-actions {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .workspace-sync-pair {
+    justify-items: start;
+    margin-left: 0;
   }
 
   .workspace-stat-row,

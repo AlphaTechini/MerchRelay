@@ -70,9 +70,6 @@ export default function Index() {
       actions={
         <>
           <Badge tone="success">Live store</Badge>
-          <Badge>
-            Synced {new Date(analysis.generatedAt).toLocaleTimeString()}
-          </Badge>
           <button
             className="workspace-button secondary"
             type="button"
@@ -80,9 +77,17 @@ export default function Index() {
           >
             Refresh analysis
           </button>
-          <Link className="workspace-button" to="/app/pairings">
-            Pair agent
-          </Link>
+          <div className="workspace-sync-pair">
+            <span className="workspace-sync-label">
+              Synced {new Date(analysis.generatedAt).toLocaleTimeString()}
+            </span>
+            <Link
+              className="workspace-button workspace-pair-button"
+              to="/app/pairings"
+            >
+              Pair agent
+            </Link>
+          </div>
         </>
       }
     >
