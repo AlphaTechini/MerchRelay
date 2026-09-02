@@ -81,6 +81,7 @@ export async function createProposal({
   sessionId,
   productId,
   changes,
+  sourceProductState,
   title,
   rationale,
   internalEvidence,
@@ -98,6 +99,16 @@ export async function createProposal({
   }
 
   const proposedChanges = normalizeChanges(changes);
+  if (
+    Object.hasOwn(proposedChanges, "descriptionHtml") &&
+    (!sourceProductState ||
+      sourceProductState.id !== product.id ||
+      sourceProductState.descriptionHtml !== product.descriptionHtml)
+  ) {
+    throw new Error(
+      "Description changes require the exact current product descriptionHtml from merchant context.",
+    );
+  }
   const proposal = await prisma.proposal.create({
     data: {
       shop,

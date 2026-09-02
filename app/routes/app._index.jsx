@@ -1,4 +1,4 @@
-import { useLoaderData, useRevalidator } from "react-router";
+import { Link, useLoaderData, useRevalidator } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
@@ -80,6 +80,9 @@ export default function Index() {
           >
             Refresh analysis
           </button>
+          <Link className="workspace-button" to="/app/pairings">
+            Pair agent
+          </Link>
         </>
       }
     >

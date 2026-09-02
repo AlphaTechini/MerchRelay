@@ -67,12 +67,18 @@ export default function ResearchConsole({
             <div>
               <strong>{product.title}</strong>
               <span>{product.seller?.name || "Unknown seller"}</span>
-              <span>Price: {catalogValue(product.priceRange)}</span>
+              <span>
+                Price:{" "}
+                {product.priceDisplay || catalogValue(product.priceRange)}
+              </span>
               {product.availability && (
                 <span>Availability: {catalogValue(product.availability)}</span>
               )}
               {product.rating && (
-                <span>Rating: {catalogValue(product.rating)}</span>
+                <span>
+                  Rating:{" "}
+                  {product.ratingDisplay || catalogValue(product.rating)}
+                </span>
               )}
             </div>
             {product.url && (

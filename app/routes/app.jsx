@@ -1,4 +1,4 @@
-import { Outlet, useLoaderData, useRouteError } from "react-router";
+import { Link, Outlet, useLoaderData, useRouteError } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 import { authenticate } from "../shopify.server";
@@ -28,6 +28,16 @@ export default function App() {
           <s-link href="/app/pairings">Pair agent</s-link>
           <s-link href="/app/settings">Settings</s-link>
         </s-app-nav>
+        <nav className="workspace-route-nav" aria-label="MerchRelay workspace">
+          <Link to="/app">Overview</Link>
+          <Link to="/app/research">Research</Link>
+          <Link to="/app/opportunities">Opportunities</Link>
+          <Link to="/app/proposals">Proposals</Link>
+          <Link to="/app/activity">Activity</Link>
+          <Link to="/app/agent">Agent</Link>
+          <Link to="/app/pairings">Pair agent</Link>
+          <Link to="/app/settings">Settings</Link>
+        </nav>
         <WebMcpTools />
         <Outlet />
       </ThemeShell>

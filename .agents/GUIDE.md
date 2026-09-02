@@ -23,3 +23,4 @@
 - Conversion metrics remain unavailable until an explicit ShopifyQL sessions query is added. MerchRelay does not infer conversion from sales data.
 - High-impact inventory, pricing, variant, publish, archive, and collection changes are not included in the challenge MVP mutation path.
 - A paired agent can execute only an exact merchant-approved revision. It cannot approve, reject, revise, cancel, batch-review, or create pairings.
+- A proposal that changes `descriptionHtml` must include the exact current product state used to draft it. Merchant context exposes each product's `descriptionHtml` for that purpose.

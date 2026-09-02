@@ -1,3 +1,9 @@
 {
-  "buildCommand": "pnpm run setup && pnpm run build"
+  "buildCommand": "pnpm run setup && pnpm run build",
+  "rewrites": [
+    {
+      "source": "/.well-known/ucp",
+      "destination": "/ucp-profile"
+    }
+  ]
 }

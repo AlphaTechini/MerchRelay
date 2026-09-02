@@ -37,7 +37,7 @@ export async function loader({ request }) {
     return Response.json({
       category: category || null,
       products,
-      categories: analysis.topCategories,
+      categories: analysis.categories,
     });
   } catch (error) {
     return jsonError(error);

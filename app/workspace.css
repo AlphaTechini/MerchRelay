@@ -6,6 +6,30 @@
   color: var(--mr-text);
 }
 
+.workspace-route-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem 0;
+}
+
+.workspace-route-nav a {
+  border: 1px solid var(--mr-border);
+  border-radius: 999px;
+  color: var(--mr-text);
+  padding: 0.4rem 0.75rem;
+  text-decoration: none;
+}
+
+.workspace-route-nav a:hover,
+.workspace-route-nav a:focus-visible {
+  border-color: var(--mr-accent);
+  background: var(--mr-surface-muted);
+  outline: none;
+}
+
 .workspace-container {
   width: min(100%, 82rem);
   margin: 0 auto;

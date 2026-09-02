@@ -5,6 +5,36 @@ import {
   recordActivity,
 } from "./merchant-analysis.server";
 
+function formatCatalogMoney(money) {
+  if (!money || typeof money.amount !== "number" || !money.currency)
+    return null;
+  const digits = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: money.currency,
+  }).resolvedOptions().maximumFractionDigits;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: money.currency,
+  }).format(money.amount / 10 ** digits);
+}
+
+function formatPriceRange(priceRange) {
+  const minimum = formatCatalogMoney(priceRange?.min);
+  const maximum = formatCatalogMoney(priceRange?.max);
+  if (!minimum) return null;
+  return maximum && maximum !== minimum ? `${minimum} to ${maximum}` : minimum;
+}
+
+function formatRating(rating) {
+  if (!rating || typeof rating !== "object") return null;
+  const value = rating.value ?? rating.average ?? rating.rating;
+  const count = rating.count ?? rating.review_count ?? rating.reviewCount;
+  if (value === undefined) return null;
+  return count === undefined
+    ? `${value} rating`
+    : `${value} rating from ${count} reviews`;
+}
+
 export async function runCatalogResearch({
   shop,
   query,
@@ -31,7 +61,9 @@ export async function runCatalogResearch({
     id: product.id,
     title: product.title,
     priceRange: product.price_range,
+    priceDisplay: formatPriceRange(product.price_range),
     rating: product.rating,
+    ratingDisplay: formatRating(product.rating),
     seller: product.seller,
     url: product.url,
     availability: product.variants?.[0]?.availability || null,

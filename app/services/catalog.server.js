@@ -1,16 +1,17 @@
-const DEFAULT_AGENT_PROFILE =
-  "https://shopify.dev/ucp/agent-profiles/2026-04-08/valid-with-capabilities.json";
-
 function catalogConfiguration() {
   const endpoint = process.env.CATALOG_ENDPOINT?.trim();
+  const appUrl = process.env.SHOPIFY_APP_URL?.trim();
 
-  if (!endpoint) {
+  if (!endpoint || !appUrl) {
     throw new Error(
-      "Global Catalog requires CATALOG_ENDPOINT in the server environment.",
+      "Global Catalog requires CATALOG_ENDPOINT and SHOPIFY_APP_URL in the server environment.",
     );
   }
 
-  return { endpoint };
+  return {
+    endpoint,
+    agentProfile: new URL("/.well-known/ucp", appUrl).toString(),
+  };
 }
 
 export async function searchGlobalCatalog({
@@ -19,7 +20,7 @@ export async function searchGlobalCatalog({
   like,
   limit = 10,
 }) {
-  const { endpoint } = catalogConfiguration();
+  const { endpoint, agentProfile } = catalogConfiguration();
   const catalog = {
     query,
     filters,
@@ -40,7 +41,7 @@ export async function searchGlobalCatalog({
       params: {
         name: "search_catalog",
         arguments: {
-          meta: { "ucp-agent": { profile: DEFAULT_AGENT_PROFILE } },
+          meta: { "ucp-agent": { profile: agentProfile } },
           catalog,
         },
       },

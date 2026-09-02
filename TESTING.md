@@ -281,6 +281,27 @@ Expected result: proposal, activity, session, research, and execution records ar
 
 Expected result: the agent receives an eight-hour, single-use, revocable session without a Shopify passkey or Shopify access token. It can apply only exact revisions the merchant has already approved.
 
+## Test 14: Agent Context and Description Safety
+
+1. In the paired agent workspace, call `get_merchant_context`.
+2. Confirm every returned product includes `descriptionHtml`, including an empty string when a product has no description.
+3. Ask the agent to create a title-only proposal. Confirm it succeeds for a draft product.
+4. Ask the agent to create a description-change proposal without supplying the matching current product state.
+5. Confirm the request fails with `Description changes require the exact current product descriptionHtml from merchant context.`
+6. Ask the agent to use the `descriptionHtml` and product ID from the context response as `sourceProductState`, then create the description proposal again.
+
+Expected result: the agent cannot replace a description it did not first inspect. The proposal records the live product as its before state and still requires merchant approval before execution.
+
+## Test 15: UCP Profile and Catalog Prices
+
+1. Request `https://merch-relay.vercel.app/.well-known/ucp` after deployment.
+2. Confirm it returns JSON with UCP version `2026-04-08`, catalog search, catalog lookup, and Global Catalog capabilities.
+3. Run a Global Catalog search.
+4. Confirm each result contains `priceDisplay` alongside the raw UCP `priceRange` amount.
+5. Confirm an amount such as `34999` with currency `USD` is displayed as `$349.99`.
+
+Expected result: the profile is a valid platform-agent declaration used by MerchRelay's Catalog requests. Raw UCP price amounts remain available for machine use while the UI and agent receive an unambiguous human-readable price.
+
 ## Troubleshooting
 
 ### The app redirects to login

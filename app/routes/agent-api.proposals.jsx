@@ -14,6 +14,7 @@ export async function action({ request }) {
       sessionId: merchantSession.id,
       productId: body.productId,
       changes: body.changes,
+      sourceProductState: body.sourceProductState,
       title: body.title,
       rationale: body.rationale,
       internalEvidence: body.internalEvidence,

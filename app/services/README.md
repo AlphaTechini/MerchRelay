@@ -16,4 +16,6 @@ To find hashed, expiring agent pairing and external authentication visit [agent-
 
 To find reusable Global Catalog research persistence visit [research.server.js](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/services/research.server.js).
 
+To find the MerchRelay UCP platform profile visit [ucp-profile.jsx](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/routes/ucp-profile.jsx).
+
 The database connection can be found in [db.server.js](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/db.server.js).

@@ -83,6 +83,7 @@ const tools = [
       properties: {
         productId: { type: "string" },
         changes: { type: "object" },
+        sourceProductState: { type: "object" },
         title: { type: "string" },
         rationale: { type: "string" },
         internalEvidence: { type: "object" },

@@ -37,6 +37,9 @@ export default function ProposalComposer({ products, recommendedResearch }) {
   }
 
   const submit = () => {
+    const selectedProduct = products.find(
+      (product) => product.id === productId,
+    );
     const changes = {
       ...(listingTitle.trim() ? { title: listingTitle.trim() } : {}),
       ...(descriptionHtml.trim()
@@ -57,6 +60,14 @@ export default function ProposalComposer({ products, recommendedResearch }) {
         goal: `Review ${recommendedResearch.category}.`,
         productId,
         changes,
+        ...(descriptionHtml.trim()
+          ? {
+              sourceProductState: {
+                id: selectedProduct.id,
+                descriptionHtml: selectedProduct.descriptionHtml,
+              },
+            }
+          : {}),
         title: proposalTitle.trim() || undefined,
         rationale:
           rationale.trim() ||

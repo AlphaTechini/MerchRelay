@@ -174,6 +174,30 @@ function buildAnalysis(data, cost, days) {
     .map((category) => ({ ...category, products: category.products.size }))
     .sort((left, right) => right.sales - left.sales)
     .slice(0, 10);
+  const categories = [
+    ...new Map(
+      data.products.nodes.map((product) => {
+        const name =
+          product.category?.fullName || product.productType || "Uncategorized";
+        return [name, { name, products: 0, sales: 0, units: 0 }];
+      }),
+    ).values(),
+  ]
+    .map((category) => {
+      const performance = categoryMetrics.get(category.name);
+      return {
+        ...category,
+        products: data.products.nodes.filter(
+          (product) =>
+            (product.category?.fullName ||
+              product.productType ||
+              "Uncategorized") === category.name,
+        ).length,
+        sales: performance?.sales || 0,
+        units: performance?.units || 0,
+      };
+    })
+    .sort((left, right) => left.name.localeCompare(right.name));
   const inventoryAlerts = data.products.nodes
     .filter(
       (product) => product.status === "ACTIVE" && product.totalInventory <= 0,
@@ -244,6 +268,7 @@ function buildAnalysis(data, cost, days) {
     topProducts,
     rankedProducts,
     topCategories,
+    categories,
     topCategory,
     topProduct,
     underperformingProducts,
@@ -272,6 +297,7 @@ function buildAnalysis(data, cost, days) {
         product.category?.fullName || product.productType || "Uncategorized",
       vendor: product.vendor,
       tags: product.tags,
+      descriptionHtml: product.descriptionHtml,
       totalInventory: product.totalInventory,
     })),
     locations: data.locations.nodes,
