@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useFetcher, useRevalidator } from "react-router";
 import { Badge } from "./workspace-page";
 
@@ -13,6 +13,8 @@ function pairingStatus(pairing) {
 export default function AgentPairingPanel({ pairings }) {
   const fetcher = useFetcher();
   const revalidator = useRevalidator();
+  const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState("");
 
   useEffect(() => {
     if (fetcher.state === "idle" && fetcher.data?.refreshed) {
@@ -20,11 +22,27 @@ export default function AgentPairingPanel({ pairings }) {
     }
   }, [fetcher.data, fetcher.state, revalidator]);
 
-  const createPairing = () =>
+  const createPairing = () => {
+    setCopied(false);
+    setCopyError("");
     fetcher.submit(
       { intent: "create" },
       { method: "post", encType: "application/json" },
     );
+  };
+
+  const copyPairingLink = async () => {
+    try {
+      await navigator.clipboard.writeText(fetcher.data.pairingUrl);
+      setCopied(true);
+      setCopyError("");
+    } catch {
+      setCopied(false);
+      setCopyError(
+        "Clipboard access was blocked. Select and copy the link manually.",
+      );
+    }
+  };
 
   const revokePairing = (pairingId) =>
     fetcher.submit(
@@ -55,11 +73,21 @@ export default function AgentPairingPanel({ pairings }) {
       {fetcher.data?.pairingUrl && (
         <label>
           Copy this one-time link into the external agent browser
-          <input
-            className="workspace-input"
-            readOnly
-            value={fetcher.data.pairingUrl}
-          />
+          <div className="workspace-pairing-link">
+            <input
+              className="workspace-input"
+              readOnly
+              value={fetcher.data.pairingUrl}
+            />
+            <button
+              className="workspace-button secondary workspace-copy-button"
+              type="button"
+              onClick={copyPairingLink}
+            >
+              {copied ? "Copied!" : "Copy"}
+            </button>
+          </div>
+          {copyError && <span className="workspace-error">{copyError}</span>}
         </label>
       )}
       {fetcher.data?.error && (
