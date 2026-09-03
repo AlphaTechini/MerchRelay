@@ -4,6 +4,8 @@ Services isolate server-side business logic from React Router handlers.
 
 Architectural decision: Admin GraphQL requests are centralized so query cost and throttle state are handled consistently. Proposal execution verifies merchant approval and current Shopify state immediately before mutation, then records a separate verification result.
 
+Tradeoff: Research runs retain query metadata and linked session proposals, not catalog product snapshots. Re-running a query retrieves current public evidence without creating a results cache.
+
 To find Admin GraphQL retry handling visit [admin-graphql.server.js](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/services/admin-graphql.server.js).
 
 To find merchant analysis visit [merchant-analysis.server.js](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/services/merchant-analysis.server.js).

@@ -25,9 +25,25 @@ const PRODUCT_UPDATE_MUTATION = `#graphql
   }
 `;
 
-const allowedChangeFields = new Set(["title", "descriptionHtml", "tags"]);
+const allowedChangeFields = new Set([
+  "title",
+  "descriptionHtml",
+  "tags",
+  "status",
+]);
+const sourceStateFields = ["title", "descriptionHtml", "tags", "status"];
+const validProductStatuses = new Set(["DRAFT", "ACTIVE", "ARCHIVED"]);
 
 function normalizeChanges(changes) {
+  const unsupportedFields = Object.keys(changes || {}).filter(
+    (key) => !allowedChangeFields.has(key),
+  );
+  if (unsupportedFields.length > 0) {
+    throw new Error(
+      `Unsupported proposal field(s): ${unsupportedFields.join(", ")}.`,
+    );
+  }
+
   const normalized = {};
   for (const [key, value] of Object.entries(changes || {})) {
     if (!allowedChangeFields.has(key)) continue;
@@ -41,6 +57,13 @@ function normalizeChanges(changes) {
       normalized.tags = value.slice(0, 250);
       continue;
     }
+    if (key === "status") {
+      if (!validProductStatuses.has(value)) {
+        throw new Error("status must be DRAFT, ACTIVE, or ARCHIVED.");
+      }
+      normalized.status = value;
+      continue;
+    }
     if (typeof value !== "string" || value.trim().length === 0) {
       throw new Error(`${key} must be a non-empty string.`);
     }
@@ -49,11 +72,57 @@ function normalizeChanges(changes) {
 
   if (Object.keys(normalized).length === 0) {
     throw new Error(
-      "A proposal must include a title, descriptionHtml, or tags change.",
+      "A proposal must include a title, descriptionHtml, tags, or status change.",
     );
   }
 
   return normalized;
+}
+
+function validateStatusTransition(currentStatus, changes) {
+  if (!Object.hasOwn(changes, "status")) return;
+
+  const transitions = {
+    DRAFT: ["ACTIVE"],
+    ACTIVE: ["DRAFT", "ARCHIVED"],
+    ARCHIVED: [],
+  };
+  if (!transitions[currentStatus]?.includes(changes.status)) {
+    throw new Error(
+      `Status transition ${currentStatus} to ${changes.status} is not allowed.`,
+    );
+  }
+}
+
+function validateSourceProductState(product, changes, sourceProductState) {
+  const changedFields = sourceStateFields.filter((field) =>
+    Object.hasOwn(changes, field),
+  );
+  if (changedFields.length === 0) return;
+
+  if (!sourceProductState || sourceProductState.id !== product.id) {
+    throw new Error(
+      "Proposal changes require the exact current product state from merchant context.",
+    );
+  }
+
+  for (const field of changedFields) {
+    if (!Object.hasOwn(sourceProductState, field)) {
+      throw new Error(
+        `sourceProductState.${field} is required for this change.`,
+      );
+    }
+    const matches =
+      field === "tags"
+        ? JSON.stringify(sourceProductState[field]) ===
+          JSON.stringify(product[field])
+        : sourceProductState[field] === product[field];
+    if (!matches) {
+      throw new Error(
+        `The supplied sourceProductState.${field} differs from Shopify's current product state.`,
+      );
+    }
+  }
 }
 
 async function getProduct(admin, productId) {
@@ -92,23 +161,18 @@ export async function createProposal({
   tool = "create_research_proposal",
 }) {
   const product = await getProduct(admin, productId);
-  if (product.status !== "DRAFT") {
+  const proposedChanges = normalizeChanges(changes);
+  const onlyChangesStatus =
+    Object.keys(proposedChanges).length === 1 &&
+    Object.hasOwn(proposedChanges, "status");
+  if (product.status !== "DRAFT" && !onlyChangesStatus) {
     throw new Error(
-      "Only draft products can receive the initial MerchRelay proposal.",
+      "Only draft products can receive listing changes; active products can receive status-only proposals.",
     );
   }
 
-  const proposedChanges = normalizeChanges(changes);
-  if (
-    Object.hasOwn(proposedChanges, "descriptionHtml") &&
-    (!sourceProductState ||
-      sourceProductState.id !== product.id ||
-      sourceProductState.descriptionHtml !== product.descriptionHtml)
-  ) {
-    throw new Error(
-      "Description changes require the exact current product descriptionHtml from merchant context.",
-    );
-  }
+  validateSourceProductState(product, proposedChanges, sourceProductState);
+  validateStatusTransition(product.status, proposedChanges);
   const proposal = await prisma.proposal.create({
     data: {
       shop,
@@ -294,6 +358,7 @@ export async function reviseProposal({ admin, shop, proposalId, changes }) {
   const product = await getProduct(admin, proposal.affectedProductId);
   const revision = proposal.revisions[0];
   const nextChanges = normalizeChanges(changes);
+  validateStatusTransition(product.status, nextChanges);
   const nextRevision = revision.revision + 1;
   const updated = await prisma.$transaction(async (transaction) => {
     await transaction.proposal.update({
@@ -357,7 +422,8 @@ export async function executeApprovedProposal({
   if (
     currentProduct.title !== expected.title ||
     currentProduct.descriptionHtml !== expected.descriptionHtml ||
-    JSON.stringify(currentProduct.tags) !== JSON.stringify(expected.tags)
+    JSON.stringify(currentProduct.tags) !== JSON.stringify(expected.tags) ||
+    currentProduct.status !== expected.status
   ) {
     throw new Error(
       "The Shopify product changed after approval; the proposal must be reviewed again.",
@@ -444,7 +510,8 @@ export async function verifyProposalExecution({
       expected &&
       product.title === expected.title &&
       product.descriptionHtml === expected.descriptionHtml &&
-      JSON.stringify(product.tags) === JSON.stringify(expected.tags);
+      JSON.stringify(product.tags) === JSON.stringify(expected.tags) &&
+      product.status === expected.status;
 
     await recordActivity({
       shop,

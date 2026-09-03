@@ -287,10 +287,24 @@ Expected result: the agent receives an eight-hour, single-use, revocable session
 2. Confirm every returned product includes `descriptionHtml`, including an empty string when a product has no description.
 3. Ask the agent to create a title-only proposal. Confirm it succeeds for a draft product.
 4. Ask the agent to create a description-change proposal without supplying the matching current product state.
-5. Confirm the request fails with `Description changes require the exact current product descriptionHtml from merchant context.`
+5. Confirm the request fails with `Proposal changes require the exact current product state from merchant context.` or a field-specific source-state error.
 6. Ask the agent to use the `descriptionHtml` and product ID from the context response as `sourceProductState`, then create the description proposal again.
 
 Expected result: the agent cannot replace a description it did not first inspect. The proposal records the live product as its before state and still requires merchant approval before execution.
+
+## Test 16: Status Proposals and Research History
+
+1. Call `get_merchant_context` and select a draft product.
+2. Call `create_research_proposal` with `changes: { status: "ACTIVE" }` and `sourceProductState` containing the product ID and current `DRAFT` status.
+3. Confirm the response is pending and the revision `beforeState.status` is `DRAFT`.
+4. Approve the revision in the merchant workspace, apply it, and confirm verification reports `status: ACTIVE`.
+5. Confirm an `ACTIVE` product can receive only a status-only proposal to `DRAFT` or `ARCHIVED`.
+6. Confirm invalid transitions, such as `DRAFT` to `ARCHIVED`, and arbitrary change keys are rejected.
+7. Open `Research` and confirm prior runs show the query, timestamp, result count, and same-session proposal titles.
+8. Click `Re-run` on a saved query and confirm current products show formatted prices, ratings, availability, and listing links.
+9. Refresh the page and confirm only run metadata remains, not the re-run product results.
+
+Expected result: status changes follow the same source-state, merchant-approval, stale-state, execution, and verification controls as listing changes. Catalog products are fetched only for the current re-run and are not stored with research history.
 
 ## Test 15: UCP Profile and Catalog Prices
 

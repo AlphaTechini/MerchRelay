@@ -18,4 +18,6 @@ To find merchant pairing controls visit [agent-pairing-panel.jsx](file:///C:/Hac
 
 To find paired external-agent WebMCP registration visit [paired-agent-tools.jsx](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/components/paired-agent-tools.jsx).
 
+To find persisted research metadata and compliant catalog re-runs visit [research-history.jsx](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/components/research-history.jsx).
+
 The browser-to-server connection can be found in [webmcp-tools.jsx](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/components/webmcp-tools.jsx).

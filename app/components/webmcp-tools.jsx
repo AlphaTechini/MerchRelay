@@ -89,8 +89,33 @@ const tools = [
       type: "object",
       properties: {
         productId: { type: "string" },
-        changes: { type: "object" },
-        sourceProductState: { type: "object" },
+        changes: {
+          type: "object",
+          additionalProperties: false,
+          minProperties: 1,
+          properties: {
+            title: { type: "string", minLength: 1 },
+            descriptionHtml: { type: "string", minLength: 1 },
+            tags: {
+              type: "array",
+              items: { type: "string" },
+              maxItems: 250,
+            },
+            status: { type: "string", enum: ["DRAFT", "ACTIVE", "ARCHIVED"] },
+          },
+        },
+        sourceProductState: {
+          type: "object",
+          description:
+            "The current Shopify product snapshot used to draft the change. Required with the relevant current fields whenever changes includes title, descriptionHtml, or tags.",
+          properties: {
+            id: { type: "string" },
+            title: { type: "string" },
+            descriptionHtml: { type: "string" },
+            tags: { type: "array", items: { type: "string" } },
+            status: { type: "string" },
+          },
+        },
         title: { type: "string" },
         rationale: { type: "string" },
         internalEvidence: { type: "object" },
@@ -99,6 +124,44 @@ const tools = [
         uncertainty: { type: "string" },
       },
       required: ["productId", "changes"],
+      allOf: [
+        {
+          if: { properties: { changes: { required: ["title"] } } },
+          then: {
+            required: ["sourceProductState"],
+            properties: {
+              sourceProductState: { required: ["id", "title"] },
+            },
+          },
+        },
+        {
+          if: { properties: { changes: { required: ["descriptionHtml"] } } },
+          then: {
+            required: ["sourceProductState"],
+            properties: {
+              sourceProductState: { required: ["id", "descriptionHtml"] },
+            },
+          },
+        },
+        {
+          if: { properties: { changes: { required: ["tags"] } } },
+          then: {
+            required: ["sourceProductState"],
+            properties: {
+              sourceProductState: { required: ["id", "tags"] },
+            },
+          },
+        },
+        {
+          if: { properties: { changes: { required: ["status"] } } },
+          then: {
+            required: ["sourceProductState"],
+            properties: {
+              sourceProductState: { required: ["id", "status"] },
+            },
+          },
+        },
+      ],
     },
     execute: (input) =>
       callTool("/api/proposals", {

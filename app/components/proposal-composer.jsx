@@ -60,14 +60,12 @@ export default function ProposalComposer({ products, recommendedResearch }) {
         goal: `Review ${recommendedResearch.category}.`,
         productId,
         changes,
-        ...(descriptionHtml.trim()
-          ? {
-              sourceProductState: {
-                id: selectedProduct.id,
-                descriptionHtml: selectedProduct.descriptionHtml,
-              },
-            }
-          : {}),
+        sourceProductState: {
+          id: selectedProduct.id,
+          title: selectedProduct.title,
+          descriptionHtml: selectedProduct.descriptionHtml,
+          tags: selectedProduct.tags,
+        },
         title: proposalTitle.trim() || undefined,
         rationale:
           rationale.trim() ||

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useFetcher } from "react-router";
+import { useEffect, useState } from "react";
+import { useFetcher, useRevalidator } from "react-router";
 
 /* eslint-disable react/prop-types */
 
@@ -15,8 +15,15 @@ export default function ResearchConsole({
   researchContext,
 }) {
   const fetcher = useFetcher();
+  const revalidator = useRevalidator();
   const [query, setQuery] = useState(initialQuery);
   const products = fetcher.data?.products || [];
+
+  useEffect(() => {
+    if (fetcher.state === "idle" && fetcher.data?.researchRunId) {
+      revalidator.revalidate();
+    }
+  }, [fetcher.data, fetcher.state, revalidator]);
 
   return (
     <div className="workspace-stack">
