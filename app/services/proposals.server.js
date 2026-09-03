@@ -157,6 +157,7 @@ export async function createProposal({
   externalEvidence,
   risk,
   uncertainty,
+  createdByPairingId,
   actor = "agent",
   tool = "create_research_proposal",
 }) {
@@ -184,6 +185,7 @@ export async function createProposal({
       internalEvidence: internalEvidence || { product: productState(product) },
       externalEvidence: externalEvidence || undefined,
       affectedProductId: product.id,
+      createdByPairingId: createdByPairingId || undefined,
       risk:
         risk || "The change affects one draft product and is not published.",
       uncertainty: uncertainty || "Recommendation requires merchant review.",
@@ -210,6 +212,64 @@ export async function createProposal({
   });
 
   return proposal;
+}
+
+export async function approvePairedAgentProposal({
+  shop,
+  proposalId,
+  pairingId,
+}) {
+  const approved = await prisma.$transaction(async (transaction) => {
+    const proposal = await transaction.proposal.findFirst({
+      where: { id: proposalId, shop },
+      include: {
+        revisions: { orderBy: { revision: "desc" }, take: 1 },
+      },
+    });
+    if (!proposal) throw new Error("Proposal not found for this shop.");
+    if (proposal.createdByPairingId !== pairingId) {
+      throw new Error("This pairing did not create the requested proposal.");
+    }
+    if (proposal.status !== "pending") {
+      throw new Error("Only pending paired-agent proposals can be approved.");
+    }
+
+    const revision = proposal.revisions[0];
+    const claimed = await transaction.proposal.updateMany({
+      where: {
+        id: proposalId,
+        status: "pending",
+        currentRevision: revision.revision,
+        createdByPairingId: pairingId,
+      },
+      data: { status: "approved" },
+    });
+    if (claimed.count !== 1) {
+      throw new Error("The proposal changed before it could be approved.");
+    }
+    await transaction.proposalDecision.create({
+      data: {
+        proposalId,
+        revisionId: revision.id,
+        decision: "approved",
+        actor: "paired_agent_token",
+        notes: "Authorized with the judge approval token.",
+      },
+    });
+    return { proposal: { ...proposal, status: "approved" }, revision };
+  });
+
+  await recordActivity({
+    shop,
+    proposalId,
+    actor: "paired_agent_token",
+    tool: "approve_and_apply_paired_proposal",
+    type: "proposal_approved",
+    summary: `Authorized revision ${approved.revision.revision} with the judge approval token.`,
+    metadata: { pairingId, revision: approved.revision.revision },
+  });
+
+  return approved;
 }
 
 export async function decideProposal({ shop, proposalId, decision, notes }) {

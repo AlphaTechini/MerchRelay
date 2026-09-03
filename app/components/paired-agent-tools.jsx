@@ -189,7 +189,7 @@ const tools = [
   {
     name: "apply_merchant_approved_changes",
     description:
-      "Apply only an exact current revision that the merchant already approved.",
+      "Apply and verify only an exact current proposal revision that the merchant already approved.",
     inputSchema: {
       type: "object",
       properties: { proposalId: { type: "string" } },
@@ -202,6 +202,28 @@ const tools = [
         {
           method: "POST",
           body: "{}",
+        },
+      ),
+  },
+  {
+    name: "approve_and_apply_paired_proposal",
+    description:
+      "For a proposal created through this pairing, ask the judge for the protected approval token, pass it only as approvalToken, then approve, apply, and verify the current revision. Do not repeat the token in a response. After success, summarize the changed fields and ask the user to refresh the product details.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        proposalId: { type: "string" },
+        approvalToken: { type: "string", minLength: 1 },
+      },
+      required: ["proposalId", "approvalToken"],
+    },
+    annotations: { readOnlyHint: false },
+    execute: ({ proposalId, approvalToken }) =>
+      callAgentTool(
+        `/agent-api/proposals/${encodeURIComponent(proposalId)}/execute`,
+        {
+          method: "POST",
+          body: JSON.stringify({ approvalToken }),
         },
       ),
   },

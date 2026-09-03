@@ -6,7 +6,9 @@ import { Badge } from "./workspace-page";
 
 function pairingStatus(pairing) {
   if (pairing.revokedAt) return "revoked";
-  if (new Date(pairing.expiresAt) <= new Date()) return "expired";
+  if (pairing.expiresAt && new Date(pairing.expiresAt) <= new Date()) {
+    return "expired";
+  }
   return pairing.claimedAt ? "active" : "waiting";
 }
 
@@ -22,13 +24,10 @@ export default function AgentPairingPanel({ pairings }) {
     }
   }, [fetcher.data, fetcher.state, revalidator]);
 
-  const createPairing = () => {
+  const createPairing = (intent) => {
     setCopied(false);
     setCopyError("");
-    fetcher.submit(
-      { intent: "create" },
-      { method: "post", encType: "application/json" },
-    );
+    fetcher.submit({ intent }, { method: "post", encType: "application/json" });
   };
 
   const copyPairingLink = async () => {
@@ -55,24 +54,38 @@ export default function AgentPairingPanel({ pairings }) {
       <div className="workspace-callout">
         <strong>External agent pairing</strong>
         <span>
-          A pairing link is single-use, lasts eight hours, and never exposes a
-          Shopify access token. The paired agent can read, research, create
-          proposals, and apply only a revision you already approved.
+          One-time links last eight hours. Long-lived links remain active until
+          revoked and can be reused by judges. Neither link exposes a Shopify
+          access token.
         </span>
       </div>
-      <button
-        className="workspace-button"
-        type="button"
-        disabled={fetcher.state !== "idle"}
-        onClick={createPairing}
-      >
-        {fetcher.state === "submitting"
-          ? "Creating pairing..."
-          : "Create pairing link"}
-      </button>
+      <div className="workspace-inline">
+        <button
+          className="workspace-button"
+          type="button"
+          disabled={fetcher.state !== "idle"}
+          onClick={() => createPairing("create")}
+        >
+          {fetcher.state === "submitting"
+            ? "Creating pairing..."
+            : "Create eight-hour link"}
+        </button>
+        <button
+          className="workspace-button secondary"
+          type="button"
+          disabled={fetcher.state !== "idle"}
+          onClick={() => createPairing("create_long_lived")}
+        >
+          {fetcher.state === "submitting"
+            ? "Creating pairing..."
+            : "Generate long-lived link"}
+        </button>
+      </div>
       {fetcher.data?.pairingUrl && (
         <label>
-          Copy this one-time link into the external agent browser
+          {fetcher.data.pairingType === "long_lived"
+            ? "Copy this reusable judge link into the external agent browser"
+            : "Copy this one-time link into the external agent browser"}
           <div className="workspace-pairing-link">
             <input
               className="workspace-input"
@@ -100,10 +113,13 @@ export default function AgentPairingPanel({ pairings }) {
             <li className="workspace-list-item" key={pairing.id}>
               <div>
                 <strong>
-                  Created {new Date(pairing.createdAt).toLocaleString()}
+                  {pairing.expiresAt ? "Eight-hour" : "Long-lived"} link created{" "}
+                  {new Date(pairing.createdAt).toLocaleString()}
                 </strong>
                 <span>
-                  Expires {new Date(pairing.expiresAt).toLocaleString()}
+                  {pairing.expiresAt
+                    ? `Expires ${new Date(pairing.expiresAt).toLocaleString()}`
+                    : "Active until revoked"}
                 </span>
                 {pairing.lastUsedAt && (
                   <span>

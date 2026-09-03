@@ -100,7 +100,9 @@ pnpm run build
 
 ## Hosting
 
-The production target is Vercel. Set the server-only Shopify variables, `DB_PRISMA_DATABASE_URL`, and `CATALOG_ENDPOINT` in the Vercel project settings. Pushes to `main` trigger the Vercel build defined in `vercel.json`.
+The production target is Vercel. Set the server-only Shopify variables, `DB_PRISMA_DATABASE_URL`, `CATALOG_ENDPOINT`, and `JUDGE_AGENT_APPROVAL_TOKEN` in the Vercel project settings. Pushes to `main` trigger the Vercel build defined in `vercel.json`.
+
+`JUDGE_AGENT_APPROVAL_TOKEN` is a long random secret shared privately with judges. It is checked only on the server when a long-lived paired agent approves and applies a proposal it created. Do not expose it in the pairing URL, browser UI, activity log, or agent summary.
 
 Global Catalog uses the UCP endpoint `https://catalog.shopify.com/api/ucp/mcp` and the server-side agent profile defined in `app/services/catalog.server.js`. No Catalog-specific API key or token exchange is used. A saved catalog identifier can be added to requests later.
 

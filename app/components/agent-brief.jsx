@@ -15,8 +15,12 @@ const toolGroups = [
     tools: ["research_product_category", "create_research_proposal"],
   },
   {
-    title: "Apply verified approval",
-    tools: ["apply_merchant_approved_changes", "verify_applied_changes"],
+    title: "Approve and apply",
+    tools: [
+      "apply_merchant_approved_changes",
+      "approve_and_apply_paired_proposal",
+      "verify_applied_changes",
+    ],
   },
 ];
 
@@ -52,7 +56,7 @@ export default function AgentBrief({ analysis, activity }) {
         detail={`${activity.length} recent events`}
       >
         <div className="workspace-inline">
-          <Badge tone="success">Merchant approval required</Badge>
+          <Badge tone="success">Judge token required</Badge>
           <Badge>Shopify mutation guarded</Badge>
           <Badge>Verification recorded</Badge>
         </div>

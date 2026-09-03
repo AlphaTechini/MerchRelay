@@ -30,7 +30,31 @@ export async function action({ request }) {
         summary: "Created an eight-hour, one-time agent pairing link.",
         metadata: { pairingId: pairing.id, expiresAt: pairing.expiresAt },
       });
-      return Response.json({ pairingUrl, refreshed: true });
+      return Response.json({
+        pairingUrl,
+        pairingType: "one_time",
+        refreshed: true,
+      });
+    }
+
+    if (body.intent === "create_long_lived") {
+      const { pairing, pairingUrl } = await createAgentPairing(session.shop, {
+        longLived: true,
+      });
+      await recordActivity({
+        shop: session.shop,
+        actor: "merchant",
+        tool: "agent_pairing",
+        type: "long_lived_agent_pairing_created",
+        summary:
+          "Created a reusable agent pairing link that remains active until revoked.",
+        metadata: { pairingId: pairing.id },
+      });
+      return Response.json({
+        pairingUrl,
+        pairingType: "long_lived",
+        refreshed: true,
+      });
     }
 
     if (body.intent === "revoke") {

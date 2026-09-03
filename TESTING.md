@@ -253,8 +253,9 @@ The app registers browser tools only when the browser exposes `document.modelCon
 9. `create_research_proposal`
 10. `get_session_activity`
 11. `apply_merchant_approved_changes`
-12. `verify_applied_changes`
-13. Invoke the read-only tools first. Do not invoke `apply_merchant_approved_changes` until Test 9 has been completed manually through the UI.
+12. `approve_and_apply_paired_proposal`
+13. `verify_applied_changes`
+14. Invoke the read-only tools first. `approve_and_apply_paired_proposal` requires an out-of-band judge approval token and may apply a Shopify change.
 
 If the inspector does not exist in the browser or AI client, Tests 5 through 10 still validate the same authenticated tool routes. The absence of an inspector does not prove that the page failed to register tools; it means the client does not expose a discovery UI.
 
@@ -269,17 +270,27 @@ Expected result: proposal, activity, session, research, and execution records ar
 ## Test 13: External Agent Pairing
 
 1. In the authenticated Shopify Admin workspace, open `Pair agent`.
-2. Click `Create pairing link`.
-3. Copy the displayed one-time link into the external agent browser. Do not send it through an untrusted channel.
-4. Confirm the agent browser redirects from `/agent/connect` to `/agent` and shows `MerchRelay agent workspace`.
-5. Confirm the agent workspace states that merchant approval is required.
-6. In a WebMCP-capable agent browser, confirm these tools are exposed: context, performance analysis, opportunities, ranking, research, proposal creation, activity, approved execution, and verification.
-7. Confirm the agent workspace does not expose proposal approval, rejection, revision, cancellation, batch review, or pairing management.
-8. Return to the merchant workspace and confirm the pairing status changes from `waiting` to `active`.
-9. Click `Revoke` and refresh the agent page.
-10. Confirm the agent page says a new merchant-generated pairing link is required and `/agent-api/context` returns an authentication error.
+2. Click `Create eight-hour link` and copy the displayed one-time link into the external agent browser. Do not send it through an untrusted channel.
+3. Confirm the agent browser redirects from `/agent/connect` to `/agent` and shows `MerchRelay agent workspace`.
+4. Confirm the agent workspace states that a judge approval token is required before it can approve and apply its own proposal.
+5. In a WebMCP-capable agent browser, confirm these tools are exposed: context, performance analysis, opportunities, ranking, research, proposal creation, activity, token-gated approval and execution, and verification.
+6. Confirm the agent workspace does not expose proposal rejection, revision, cancellation, batch review, or pairing management.
+7. Return to the merchant workspace and confirm the pairing status changes from `waiting` to `active`.
+8. Click `Revoke` and refresh the agent page.
+9. Confirm the agent page says a new merchant-generated pairing link is required and `/agent-api/context` returns an authentication error.
 
-Expected result: the agent receives an eight-hour, single-use, revocable session without a Shopify passkey or Shopify access token. It can apply only exact revisions the merchant has already approved.
+Expected result: the agent receives an eight-hour, single-use, revocable session without a Shopify passkey or Shopify access token. It can apply only an exact merchant-approved revision; token-gated self-approval is limited to a long-lived pairing.
+
+Long-lived judge pairing:
+
+1. In `Pair agent`, click `Generate long-lived link` and copy the reusable link into two separate agent-browser sessions.
+2. Confirm both sessions reach `/agent`, the merchant workspace shows `Long-lived link`, and its status remains active until revoked.
+3. Create a proposal from one session, then call `approve_and_apply_paired_proposal` with its proposal ID and the privately shared `JUDGE_AGENT_APPROVAL_TOKEN` value.
+4. Confirm the response lists the changed fields, records verification, and asks the user to refresh the product details.
+5. Confirm a proposal created through a different pairing link cannot be approved by this long-lived link, even when the judge approval token is supplied.
+6. Revoke the long-lived link, refresh both agent sessions, and confirm all paired-agent routes return an authentication error.
+
+Expected result: the reusable link remains usable until the merchant revokes it. The approval token stays server-validated and is never returned, logged, or saved. One pairing cannot approve or apply another pairing's proposal.
 
 ## Test 14: Agent Context and Description Safety
 
@@ -290,7 +301,7 @@ Expected result: the agent receives an eight-hour, single-use, revocable session
 5. Confirm the request fails with `Proposal changes require the exact current product state from merchant context.` or a field-specific source-state error.
 6. Ask the agent to use the `descriptionHtml` and product ID from the context response as `sourceProductState`, then create the description proposal again.
 
-Expected result: the agent cannot replace a description it did not first inspect. The proposal records the live product as its before state and still requires merchant approval before execution.
+Expected result: the agent cannot replace a description it did not first inspect. The proposal records the live product as its before state and requires the protected judge token before paired-agent approval and execution.
 
 ## Test 16: Status Proposals and Research History
 

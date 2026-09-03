@@ -2,7 +2,7 @@
 
 Services isolate server-side business logic from React Router handlers.
 
-Architectural decision: Admin GraphQL requests are centralized so query cost and throttle state are handled consistently. Proposal execution verifies merchant approval and current Shopify state immediately before mutation, then records a separate verification result.
+Architectural decision: Admin GraphQL requests are centralized so query cost and throttle state are handled consistently. Standard proposal execution verifies merchant approval; a paired agent can directly approve and execute only its own pending proposal after the server validates the protected judge token. Both paths verify current Shopify state immediately before mutation and record a separate verification result.
 
 Tradeoff: Research runs retain query metadata and linked session proposals, not catalog product snapshots. Re-running a query retrieves current public evidence without creating a results cache.
 
@@ -14,7 +14,7 @@ To find Global Catalog UCP access visit [catalog.server.js](file:///C:/Hackathon
 
 To find proposal lifecycle logic visit [proposals.server.js](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/services/proposals.server.js).
 
-To find hashed, expiring agent pairing and external authentication visit [agent-pairing.server.js](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/services/agent-pairing.server.js).
+To find hashed one-time and long-lived agent pairing, token validation, and external authentication visit [agent-pairing.server.js](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/services/agent-pairing.server.js).
 
 To find reusable Global Catalog research persistence visit [research.server.js](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/services/research.server.js).
 

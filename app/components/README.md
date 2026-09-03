@@ -14,9 +14,9 @@ To find batch proposal approval UI visit [proposal-queue.jsx](file:///C:/Hackath
 
 To find agent workflow guidance visit [agent-brief.jsx](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/components/agent-brief.jsx).
 
-To find merchant pairing controls visit [agent-pairing-panel.jsx](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/components/agent-pairing-panel.jsx).
+To find one-time and long-lived merchant pairing controls visit [agent-pairing-panel.jsx](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/components/agent-pairing-panel.jsx).
 
-To find paired external-agent WebMCP registration visit [paired-agent-tools.jsx](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/components/paired-agent-tools.jsx).
+To find paired external-agent WebMCP registration and judge-token execution instructions visit [paired-agent-tools.jsx](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/components/paired-agent-tools.jsx).
 
 To find persisted research metadata and compliant catalog re-runs visit [research-history.jsx](file:///C:/Hackathons/Shopify%20Agent/web-mcp-merchant-research-lab/app/components/research-history.jsx).
 

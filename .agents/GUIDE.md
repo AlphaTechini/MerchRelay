@@ -6,7 +6,7 @@
 - The deployment target is Vercel with PostgreSQL Prisma session and collaboration storage.
 - Shopify access tokens and server configuration remain server-side.
 - Catalog research uses Shopify Global Catalog UCP and does not persist raw catalog results.
-- Product mutations require an exact merchant-approved proposal revision and Shopify state verification.
+- Product mutations require a verified current Shopify state and post-mutation verification. Standard workspace execution requires merchant approval; judge-authorized paired execution requires a protected server-side token.
 
 ## Chosen Architecture
 
@@ -15,13 +15,13 @@
 - Use ShopifyQL for reporting when available and order-line-item analysis only as an explicit fallback.
 - Keep challenge MVP mutations synchronous. Durable queue and retry infrastructure is deferred because it requires external QStash configuration.
 - Restrict listing changes to draft products. Supported proposal fields are title, description HTML, tags, and tightly constrained status transitions: DRAFT to ACTIVE, or ACTIVE to DRAFT or ARCHIVED.
-- Merchant-created external agent pairings are single-use, expire after eight hours, are revocable, and exchange into an HttpOnly browser cookie. The token is stored only as a hash.
+- Merchant-created external agent pairings can be single-use and eight-hour, or reusable and long-lived until revoked. Pairing secrets are stored only as hashes; long-lived link secrets are exchanged into an HttpOnly session cookie.
 
 ## Tradeoffs
 
 - Batch approval is supported; batch execution is intentionally not. Each approved Shopify mutation runs and verifies separately so a partial failure cannot be presented as an all-or-nothing bulk update.
 - Conversion metrics remain unavailable until an explicit ShopifyQL sessions query is added. MerchRelay does not infer conversion from sales data.
 - High-impact inventory, pricing, variant, publish, archive, and collection changes are not included in the challenge MVP mutation path.
-- A paired agent can execute only an exact merchant-approved revision. It cannot approve, reject, revise, cancel, batch-review, or create pairings.
+- A paired agent can execute an exact merchant-approved revision through the standard route. A paired agent using the long-lived judge link can also approve and execute only a proposal created by that exact pairing after the server validates `JUDGE_AGENT_APPROVAL_TOKEN`. It cannot approve another pairing's proposal, reject, revise, cancel, batch-review, or create pairings.
 - A proposal that changes `descriptionHtml` must include the exact current product state used to draft it. Merchant context exposes each product's `descriptionHtml` for that purpose.
 - Every supported agent-proposed field requires its matching value in `sourceProductState`. MerchRelay rereads Shopify before storing the verified `beforeState` and again before execution.

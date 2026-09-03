@@ -5,7 +5,7 @@ import { jsonError, readRequestBody } from "../services/route-response.server";
 
 export async function action({ request }) {
   try {
-    const { admin, shop } = await requirePairedAgent(request);
+    const { admin, pairing, shop } = await requirePairedAgent(request);
     const body = await readRequestBody(request);
     const merchantSession = await getOrCreateMerchantSession(shop, body.goal);
     const proposal = await createProposal({
@@ -21,6 +21,7 @@ export async function action({ request }) {
       externalEvidence: body.externalEvidence,
       risk: body.risk,
       uncertainty: body.uncertainty,
+      createdByPairingId: pairing.id,
       actor: "paired_agent",
       tool: "create_research_proposal",
     });

@@ -77,6 +77,8 @@ model Proposal {
   affectedProductId String?
   status            String             @default("pending")
   currentRevision   Int                @default(1)
+  createdByPairingId String?
+  createdByPairing  AgentPairing?      @relation("AgentPairingProposals", fields: [createdByPairingId], references: [id], onDelete: SetNull)
   risk              String?
   uncertainty       String?
   createdAt         DateTime           @default(now())
@@ -87,6 +89,7 @@ model Proposal {
   activity          ActivityEntry[]
 
   @@index([shop, status, createdAt])
+  @@index([createdByPairingId])
 }
 
 model ProposalRevision {
@@ -157,11 +160,12 @@ model AgentPairing {
   shop        String
   tokenHash   String   @unique
   sessionHash String?  @unique
-  expiresAt   DateTime
+  expiresAt   DateTime?
   claimedAt   DateTime?
   revokedAt   DateTime?
   lastUsedAt  DateTime?
   createdAt   DateTime @default(now())
+  proposals   Proposal[] @relation("AgentPairingProposals")
 
   @@index([shop, expiresAt])
 }
