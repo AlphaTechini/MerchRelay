@@ -63,15 +63,32 @@ const tools = [
       type: "object",
       properties: {
         query: { type: "string", minLength: 1 },
-        limit: { type: "integer" },
+        currency: { type: "string", minLength: 3, maxLength: 3 },
+        minPrice: { type: "number", minimum: 0 },
+        maxPrice: { type: "number", minimum: 0 },
+        availableOnly: { type: "boolean" },
+        condition: { type: "string" },
+        limit: { type: "integer", minimum: 1, maximum: 50 },
       },
       required: ["query"],
     },
     annotations: { readOnlyHint: true, untrustedContentHint: true },
-    execute: ({ query, limit }) =>
+    execute: ({
+      query,
+      currency,
+      minPrice,
+      maxPrice,
+      availableOnly,
+      condition,
+      limit,
+    }) =>
       callAgentTool("/agent-api/research", {
         method: "POST",
-        body: JSON.stringify({ query, limit }),
+        body: JSON.stringify({
+          query,
+          filters: { currency, minPrice, maxPrice, availableOnly, condition },
+          limit,
+        }),
       }),
   },
   {

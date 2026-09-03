@@ -9,7 +9,7 @@ export async function action({ request }) {
     const result = await runCatalogResearch({
       shop: session.shop,
       query: body.query,
-      filters: body.filters || { available: true },
+      filters: body.filters || { availableOnly: true },
       like: body.like,
       limit: Number(body.limit || 10),
       actor: "agent",
