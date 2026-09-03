@@ -284,7 +284,7 @@ Expected result: the agent receives an eight-hour, single-use, revocable session
 Long-lived judge pairing:
 
 1. In `Pair agent`, click `Generate long-lived link` and copy the reusable link into two separate agent-browser sessions.
-2. Confirm both sessions reach `/agent`, the merchant workspace shows `Long-lived link`, and its status remains active until revoked.
+2. Confirm both sessions reach `/agent`, retain access after a normal browser restart, the merchant workspace shows `Long-lived link`, and its status remains active until revoked.
 3. Create a proposal from one session, then call `approve_and_apply_paired_proposal` with its proposal ID and the privately shared `JUDGE_AGENT_APPROVAL_TOKEN` value.
 4. Confirm the response lists the changed fields, records verification, and asks the user to refresh the product details.
 5. Confirm a proposal created through a different pairing link cannot be approved by this long-lived link, even when the judge approval token is supplied.

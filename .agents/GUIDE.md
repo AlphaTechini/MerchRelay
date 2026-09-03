@@ -15,7 +15,7 @@
 - Use ShopifyQL for reporting when available and order-line-item analysis only as an explicit fallback.
 - Keep challenge MVP mutations synchronous. Durable queue and retry infrastructure is deferred because it requires external QStash configuration.
 - Restrict listing changes to draft products. Supported proposal fields are title, description HTML, tags, and tightly constrained status transitions: DRAFT to ACTIVE, or ACTIVE to DRAFT or ARCHIVED.
-- Merchant-created external agent pairings can be single-use and eight-hour, or reusable and long-lived until revoked. Pairing secrets are stored only as hashes; long-lived link secrets are exchanged into an HttpOnly session cookie.
+- Merchant-created external agent pairings can be single-use and eight-hour, or reusable and long-lived until revoked. Pairing secrets are stored only as hashes; long-lived link secrets are exchanged into an HttpOnly cookie that persists for one year.
 
 ## Tradeoffs
 

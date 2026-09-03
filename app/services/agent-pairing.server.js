@@ -4,6 +4,7 @@ import { unauthenticated } from "../shopify.server";
 
 const PAIRING_COOKIE = "__Host-merchrelay_agent_pairing";
 const PAIRING_DURATION_MS = 8 * 60 * 60 * 1000;
+const LONG_LIVED_PAIRING_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 
 export class AgentPairingError extends Error {
   constructor(message, status = 401) {
@@ -83,7 +84,10 @@ export async function redeemAgentPairing(pairingSecret) {
       where: { id: pairing.id },
       data: { claimedAt: pairing.claimedAt || now, lastUsedAt: now },
     });
-    return { pairing, cookie: cookieHeader(pairingSecret) };
+    return {
+      pairing,
+      cookie: cookieHeader(pairingSecret, LONG_LIVED_PAIRING_COOKIE_MAX_AGE),
+    };
   }
 
   const sessionSecret = secret();

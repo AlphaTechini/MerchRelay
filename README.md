@@ -17,7 +17,7 @@ WebMCP fits this use case because the agent can work inside the authenticated me
 Merchants authenticate the Shopify app, inspect the dashboard, choose a research direction, and review proposal details in the workspace. Agents discover the same browser tools and can perform the investigation without being granted the merchant's Shopify credentials.
 
 - A standard paired agent can read store context, research, create proposals, and apply revisions the merchant approved in the workspace.
-- A long-lived judge pairing can be reused by judges until the merchant revokes it. It can also approve and apply only proposals created through that exact pairing after the judge supplies the server-only approval token.
+- A long-lived judge pairing can be reused by judges until the merchant revokes it. It establishes a one-year persistent, HttpOnly browser session and can approve and apply only proposals created through that exact pairing after the judge supplies the server-only approval token.
 - Every supported mutation is restricted to the allowed product fields, checked against the exact source state, verified immediately before execution, and checked again after Shopify responds.
 - After a successful update, the agent receives a summary and is instructed to ask the user to refresh the product details. A new-product creation flow is not part of this MVP.
 
@@ -118,7 +118,7 @@ Global Catalog uses the UCP endpoint `https://catalog.shopify.com/api/ucp/mcp` a
 1. Configure the Vercel environment variables, including a strong `JUDGE_AGENT_APPROVAL_TOKEN`.
 2. Deploy `main`. The configured build runs `pnpm run setup` before `pnpm run build`, applying pending Prisma migrations.
 3. Open the Shopify Admin app and use `Pair agent` to create either an eight-hour link or a reusable long-lived judge link.
-4. Share a pairing link only through the intended private judging channel. Treat it as a bearer credential until it is revoked.
+4. Share a pairing link only through the intended private judging channel. Open it as a top-level browser page to establish its one-year persistent session, and treat it as a bearer credential until it is revoked.
 5. In the paired agent workspace, demonstrate context analysis, public catalog research, proposal creation, and activity history.
 6. For a long-lived judge flow, provide the approval token only when the agent asks for authorization to apply its own proposal. The token is submitted to the server and is not displayed back.
 7. After the response confirms execution and verification, refresh the product details in Shopify to see the updated state.
