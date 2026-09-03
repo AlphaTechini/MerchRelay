@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
 import { useFetcher, useRevalidator } from "react-router";
+import CatalogResult from "./catalog-result";
 
 /* eslint-disable react/prop-types */
-
-function catalogValue(value) {
-  if (value === null || value === undefined) return "Not provided";
-  if (typeof value === "string" || typeof value === "number") return value;
-  return JSON.stringify(value);
-}
 
 export default function ResearchConsole({
   compact = false,
@@ -17,7 +12,32 @@ export default function ResearchConsole({
   const fetcher = useFetcher();
   const revalidator = useRevalidator();
   const [query, setQuery] = useState(initialQuery);
+  const [currency, setCurrency] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [availableOnly, setAvailableOnly] = useState(true);
+  const [condition, setCondition] = useState("");
+  const [limit, setLimit] = useState("10");
   const products = fetcher.data?.products || [];
+
+  const submitResearch = () => {
+    const filters = {
+      ...(currency.trim() ? { currency: currency.trim().toUpperCase() } : {}),
+      ...(minPrice ? { minPrice: Number(minPrice) } : {}),
+      ...(maxPrice ? { maxPrice: Number(maxPrice) } : {}),
+      availableOnly,
+      ...(condition ? { condition } : {}),
+    };
+
+    fetcher.submit(
+      { query, filters, limit: Number(limit) },
+      {
+        method: "post",
+        action: "/api/research",
+        encType: "application/json",
+      },
+    );
+  };
 
   useEffect(() => {
     if (fetcher.state === "idle" && fetcher.data?.researchRunId) {
@@ -51,49 +71,97 @@ export default function ResearchConsole({
           className="workspace-button"
           type="button"
           disabled={!query.trim() || fetcher.state !== "idle"}
-          onClick={() =>
-            fetcher.submit(
-              { query },
-              {
-                method: "post",
-                action: "/api/research",
-                encType: "application/json",
-              },
-            )
-          }
+          onClick={submitResearch}
         >
           {fetcher.state === "submitting" ? "Researching..." : "Research"}
         </button>
       </div>
+      {query.trim() && (
+        <div className="workspace-filter-panel">
+          <div>
+            <strong>Optional catalog filters</strong>
+            <p className="workspace-muted">
+              Narrow the public catalog search without adding filter syntax to
+              the query.
+            </p>
+          </div>
+          <div className="workspace-filter-grid">
+            <label className="workspace-field">
+              Currency
+              <input
+                className="workspace-input"
+                inputMode="text"
+                maxLength={3}
+                placeholder="USD"
+                value={currency}
+                onChange={(event) => setCurrency(event.target.value)}
+              />
+            </label>
+            <label className="workspace-field">
+              Minimum price
+              <input
+                className="workspace-input"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0"
+                value={minPrice}
+                onChange={(event) => setMinPrice(event.target.value)}
+              />
+            </label>
+            <label className="workspace-field">
+              Maximum price
+              <input
+                className="workspace-input"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="150"
+                value={maxPrice}
+                onChange={(event) => setMaxPrice(event.target.value)}
+              />
+            </label>
+            <label className="workspace-field">
+              Condition
+              <select
+                className="workspace-input"
+                value={condition}
+                onChange={(event) => setCondition(event.target.value)}
+              >
+                <option value="">Any condition</option>
+                <option value="new">New</option>
+                <option value="used">Used</option>
+                <option value="refurbished">Refurbished</option>
+              </select>
+            </label>
+            <label className="workspace-field">
+              Results
+              <input
+                className="workspace-input"
+                type="number"
+                min="1"
+                max="50"
+                value={limit}
+                onChange={(event) => setLimit(event.target.value)}
+              />
+            </label>
+          </div>
+          <label className="workspace-checkbox">
+            <input
+              type="checkbox"
+              checked={availableOnly}
+              onChange={(event) => setAvailableOnly(event.target.checked)}
+            />
+            Only show available products
+          </label>
+        </div>
+      )}
       {fetcher.data?.error && (
         <p className="workspace-error">{fetcher.data.error}</p>
       )}
       {!compact &&
         products.map((product) => (
-          <div className="workspace-list-item" key={product.id}>
-            <div>
-              <strong>{product.title}</strong>
-              <span>{product.seller?.name || "Unknown seller"}</span>
-              <span>
-                Price:{" "}
-                {product.priceDisplay || catalogValue(product.priceRange)}
-              </span>
-              {product.availability && (
-                <span>Availability: {catalogValue(product.availability)}</span>
-              )}
-              {product.rating && (
-                <span>
-                  Rating:{" "}
-                  {product.ratingDisplay || catalogValue(product.rating)}
-                </span>
-              )}
-            </div>
-            {product.url && (
-              <a href={product.url} target="_blank" rel="noreferrer">
-                Open listing
-              </a>
-            )}
-          </div>
+          <CatalogResult key={product.id} product={product} />
         ))}
       {compact && products.length > 0 && (
         <p className="workspace-muted">

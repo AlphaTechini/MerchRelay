@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useFetcher, useRevalidator } from "react-router";
 import { Badge } from "./workspace-page";
+import CatalogResult from "./catalog-result";
 
 /* eslint-disable react/prop-types */
 
@@ -91,24 +92,7 @@ export default function ResearchHistory({ runs }) {
             </button>
           </div>
           {products.map((product) => (
-            <div className="workspace-list-item" key={product.id}>
-              <div>
-                <strong>{product.title}</strong>
-                <span>{product.seller?.name || "Unknown seller"}</span>
-                <span>Price: {product.priceDisplay || "Not provided"}</span>
-                {product.availability && (
-                  <span>Availability: {String(product.availability)}</span>
-                )}
-                {product.ratingDisplay && (
-                  <span>Rating: {product.ratingDisplay}</span>
-                )}
-              </div>
-              {product.url && (
-                <a href={product.url} target="_blank" rel="noreferrer">
-                  Open listing
-                </a>
-              )}
-            </div>
+            <CatalogResult key={product.id} product={product} />
           ))}
         </div>
       )}
