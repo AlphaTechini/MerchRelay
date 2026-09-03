@@ -1,33 +1,59 @@
 # MerchRelay
 
-MerchRelay is a merchant-intelligence and store-management workspace built for the WebMCP Challenge. The agent analyzes verified Shopify data, researches public catalog information, prepares proposals, and applies only merchant-approved changes.
+MerchRelay is a Shopify merchant-intelligence workspace built for the WebMCP Challenge. It connects a merchant and a browser-based agent around the same verified store context: the merchant sees the evidence and controls access, while the agent can analyze, research, explain, propose, and verify work through discoverable WebMCP tools.
+
+## Why WebMCP Fits
+
+WebMCP fits this use case because the agent can work inside the authenticated merchant workspace instead of receiving a private Shopify access token or relying on an opaque integration. The browser exposes structured, typed actions with explicit read-only or mutation annotations. This gives the agent a useful operating loop while keeping the merchant in control:
+
+1. Read verified Shopify context, including products, inventory, locations, collections, order signals, and ShopifyQL results.
+2. Research comparable public products through Shopify Global Catalog as clearly labeled external evidence.
+3. Create a proposal containing the current product state, exact proposed changes, reasoning, supporting evidence, risk, and uncertainty.
+4. Apply only an exact current revision through an approval path.
+5. Re-read Shopify and report whether the resulting state was verified.
+
+## Human And Agent Workflow
+
+Merchants authenticate the Shopify app, inspect the dashboard, choose a research direction, and review proposal details in the workspace. Agents discover the same browser tools and can perform the investigation without being granted the merchant's Shopify credentials.
+
+- A standard paired agent can read store context, research, create proposals, and apply revisions the merchant approved in the workspace.
+- A long-lived judge pairing can be reused by judges until the merchant revokes it. It can also approve and apply only proposals created through that exact pairing after the judge supplies the server-only approval token.
+- Every supported mutation is restricted to the allowed product fields, checked against the exact source state, verified immediately before execution, and checked again after Shopify responds.
+- After a successful update, the agent receives a summary and is instructed to ask the user to refresh the product details. A new-product creation flow is not part of this MVP.
+
+## Current Capabilities
+
+- Shopify product, inventory, location, collection, order, and ShopifyQL context.
+- Evidence-backed store opportunity detection.
+- Category ranking with an honest fallback when the store has no sales history.
+- Global Catalog research with query, currency, price range, availability, condition, and result-limit filters.
+- Current catalog result details with seller, description, image, price, rating, availability, and listing link where supplied by the catalog response.
+- Research history that stores query metadata and supports explicit re-runs without persisting raw catalog results.
+- Proposal creation for title, description HTML, tags, and constrained status transitions.
+- Merchant review, revision, cancellation, batch approval, execution, and post-execution verification.
+- One-time eight-hour pairing links and reusable long-lived judge pairing links.
+- Activity history for research, proposals, pairing events, decisions, executions, and verification.
 
 Project structure and logic links are documented in [structure.md](structure.md).
 
 Manual acceptance steps for the current MVP are documented in [TESTING.md](TESTING.md).
 
-The application uses Shopify's official [React Router app template](https://shopify.dev/docs/api/shopify-app-react-router), PostgreSQL-backed Prisma session storage, Shopify Admin GraphQL, Global Catalog MCP, and browser WebMCP tools.
-
-Rather than cloning this repo, follow the [Quick Start steps](https://github.com/Shopify/shopify-app-template-react-router#quick-start).
-
-Visit the [`shopify.dev` documentation](https://shopify.dev/docs/api/shopify-app-react-router) for more details on the React Router app package.
-
-## Upgrading from Remix
-
-If you have an existing Remix app that you want to upgrade to React Router, please follow the [upgrade guide](https://github.com/Shopify/shopify-app-template-react-router/wiki/Upgrading-from-Remix). Otherwise, please follow the quick start guide below.
+The application uses Shopify's official [React Router app template](https://shopify.dev/docs/api/shopify-app-react-router), PostgreSQL-backed Prisma storage, Shopify Admin GraphQL, Shopify Global Catalog MCP, and browser WebMCP tools.
 
 ## Quick start
 
 ### Prerequisites
 
-Before you begin, you'll need to [download and install the Shopify CLI](https://shopify.dev/docs/apps/tools/cli/getting-started) if you haven't already.
+Before you begin, install Node.js 20.19+ or 22.12+, pnpm, the [Shopify CLI](https://shopify.dev/docs/apps/tools/cli/getting-started), and access to a PostgreSQL database for deployment.
 
 ### Setup
 
 ```powershell
 pnpm install
-pnpm run build
+pnpm run setup
 ```
+
+Create local configuration from `.env.example`. Keep `.env` server-side and never commit it. The required deployment values are Shopify app credentials, `SHOPIFY_APP_URL`, `SCOPES`, `DB_PRISMA_DATABASE_URL`, `CATALOG_ENDPOINT`, and `JUDGE_AGENT_APPROVAL_TOKEN`.
 
 ### Local Development
 
@@ -35,52 +61,33 @@ pnpm run build
 shopify app dev
 ```
 
-Press P to open the URL to your app. Once you click install, you can start development.
+Press P to open the app URL. Install the app in the configured development store, then open the MerchRelay workspace.
 
 Local development is powered by [the Shopify CLI](https://shopify.dev/docs/apps/tools/cli). It logs into your account, connects to an app, provides environment variables, updates remote config, creates a tunnel and provides commands to generate extensions.
 
-### Authenticating and querying data
+### Validation
 
-To authenticate and query data you can use the `shopify` const that is exported from `/app/shopify.server.js`:
+Run the project checks before opening a pull request or deploying:
 
-```js
-export async function loader({ request }) {
-  const { admin } = await shopify.authenticate.admin(request);
-
-  const response = await admin.graphql(`
-    {
-      products(first: 25) {
-        nodes {
-          title
-          description
-        }
-      }
-    }`);
-
-  const {
-    data: {
-      products: { nodes },
-    },
-  } = await response.json();
-
-  return nodes;
-}
+```powershell
+pnpm run lint
+pnpm run typecheck
+pnpm run build
 ```
 
-This template comes pre-configured with examples of:
+## Configuration
 
-1. Setting up your Shopify app in [/app/shopify.server.ts](https://github.com/Shopify/shopify-app-template-react-router/blob/main/app/shopify.server.ts)
-2. Querying data using Graphql. Please see: [/app/routes/app.\_index.tsx](https://github.com/Shopify/shopify-app-template-react-router/blob/main/app/routes/app._index.tsx).
-3. Responding to webhooks. Please see [/app/routes/webhooks.tsx](https://github.com/Shopify/shopify-app-template-react-router/blob/main/app/routes/webhooks.app.uninstalled.tsx).
-4. Using metafields, metaobjects, and declarative custom data definitions. Please see [/app/routes/app.\_index.tsx](https://github.com/Shopify/shopify-app-template-react-router/blob/main/app/routes/app._index.tsx) and [shopify.app.toml](https://github.com/Shopify/shopify-app-template-react-router/blob/main/shopify.app.toml).
+| Variable                                 | Purpose                                                                                 |
+| ---------------------------------------- | --------------------------------------------------------------------------------------- |
+| `SHOPIFY_API_KEY` / `SHOPIFY_API_SECRET` | Shopify app credentials.                                                                |
+| `SHOPIFY_APP_URL`                        | Public app URL used for redirects and pairing links.                                    |
+| `SHOPIFY_SHOP`                           | The approved development or test store.                                                 |
+| `SCOPES`                                 | Shopify permissions required by the app.                                                |
+| `DB_PRISMA_DATABASE_URL`                 | PostgreSQL connection used for sessions and collaboration records.                      |
+| `CATALOG_ENDPOINT`                       | Shopify Global Catalog UCP MCP endpoint.                                                |
+| `JUDGE_AGENT_APPROVAL_TOKEN`             | Server-only token for long-lived judge agents to approve and apply their own proposals. |
 
-Please read the [documentation for @shopify/shopify-app-react-router](https://shopify.dev/docs/api/shopify-app-react-router) to see what other API's are available.
-
-## Shopify Dev MCP
-
-This template is configured with the Shopify Dev MCP. This instructs [Cursor](https://cursor.com/), [GitHub Copilot](https://github.com/features/copilot) and [Claude Code](https://claude.com/product/claude-code) and [Google Gemini CLI](https://github.com/google-gemini/gemini-cli) to use the Shopify Dev MCP.
-
-For more information on the Shopify Dev MCP please read [the documentation](https://shopify.dev/docs/apps/build/devmcp).
+The `.env.example` file documents the configuration shape with placeholders. Never expose the Shopify credentials, database URL, or judge approval token in browser code, pairing URLs, activity records, screenshots, or agent responses.
 
 ## Deployment
 
@@ -105,6 +112,26 @@ The production target is Vercel. Set the server-only Shopify variables, `DB_PRIS
 `JUDGE_AGENT_APPROVAL_TOKEN` is a long random secret shared privately with judges. It is checked only on the server when a long-lived paired agent approves and applies a proposal it created. Do not expose it in the pairing URL, browser UI, activity log, or agent summary.
 
 Global Catalog uses the UCP endpoint `https://catalog.shopify.com/api/ucp/mcp` and the server-side agent profile defined in `app/services/catalog.server.js`. No Catalog-specific API key or token exchange is used. A saved catalog identifier can be added to requests later.
+
+## Deployment And Demo Flow
+
+1. Configure the Vercel environment variables, including a strong `JUDGE_AGENT_APPROVAL_TOKEN`.
+2. Deploy `main`. The configured build runs `pnpm run setup` before `pnpm run build`, applying pending Prisma migrations.
+3. Open the Shopify Admin app and use `Pair agent` to create either an eight-hour link or a reusable long-lived judge link.
+4. Share a pairing link only through the intended private judging channel. Treat it as a bearer credential until it is revoked.
+5. In the paired agent workspace, demonstrate context analysis, public catalog research, proposal creation, and activity history.
+6. For a long-lived judge flow, provide the approval token only when the agent asks for authorization to apply its own proposal. The token is submitted to the server and is not displayed back.
+7. After the response confirms execution and verification, refresh the product details in Shopify to see the updated state.
+
+The public UCP profile is served at `/.well-known/ucp`. Catalog results are external evidence and are not stored as raw product snapshots. Research history stores the query metadata and supports explicit re-runs.
+
+## MVP Boundaries
+
+- Product mutations cover title, description HTML, tags, and constrained status transitions only.
+- Listing changes are restricted to draft products, except status-only transitions for existing products.
+- Product creation, pricing, inventory, variants, collections, publishing, payments, and bulk execution are outside this MVP.
+- The app does not infer conversion metrics when the store has no verified conversion query or order evidence.
+- Long-lived judge access is revocable, but anyone holding its link can use the paired read and proposal tools until revocation.
 
 See [Shopify deployment documentation](https://shopify.dev/docs/apps/launch/deployment) for platform requirements.
 
@@ -134,7 +161,7 @@ This only applies if your app is embedded, which it will be by default.
 
 If you are registering webhooks in the `afterAuth` hook, using `shopify.registerWebhooks`, you may find that your subscriptions aren't being updated.
 
-Instead of using the `afterAuth` hook declare app-specific webhooks in the `shopify.app.toml` file. This approach is easier since Shopify will automatically sync changes every time you run `deploy` (e.g: `npm run deploy`). Please read these guides to understand more:
+Instead of using the `afterAuth` hook declare app-specific webhooks in the `shopify.app.toml` file. This approach is easier since Shopify will automatically sync changes every time you run `deploy` (for example, `pnpm run deploy`). Please read these guides to understand more:
 
 1. [app-specific vs shop-specific webhooks](https://shopify.dev/docs/apps/build/webhooks/subscribe#app-specific-subscriptions)
 2. [Create a subscription tutorial](https://shopify.dev/docs/apps/build/webhooks/subscribe/get-started?deliveryMethod=https)
