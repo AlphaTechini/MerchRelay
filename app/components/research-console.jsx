@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFetcher, useRevalidator } from "react-router";
 import CatalogResult from "./catalog-result";
 
@@ -18,9 +18,12 @@ export default function ResearchConsole({
   const [availableOnly, setAvailableOnly] = useState(true);
   const [condition, setCondition] = useState("");
   const [limit, setLimit] = useState("10");
-  const products = fetcher.data?.products || [];
+  const [currentResults, setCurrentResults] = useState(null);
+  const handledResearchRunId = useRef(null);
+  const products = currentResults?.products || [];
 
   const submitResearch = () => {
+    setCurrentResults(null);
     const filters = {
       ...(currency.trim() ? { currency: currency.trim().toUpperCase() } : {}),
       ...(minPrice ? { minPrice: Number(minPrice) } : {}),
@@ -40,9 +43,20 @@ export default function ResearchConsole({
   };
 
   useEffect(() => {
-    if (fetcher.state === "idle" && fetcher.data?.researchRunId) {
-      revalidator.revalidate();
-    }
+    const researchRunId = fetcher.data?.researchRunId;
+    if (
+      fetcher.state !== "idle" ||
+      !researchRunId ||
+      handledResearchRunId.current === researchRunId
+    )
+      return;
+
+    handledResearchRunId.current = researchRunId;
+    setCurrentResults({
+      products: fetcher.data.products || [],
+      messages: fetcher.data.messages || [],
+    });
+    revalidator.revalidate();
   }, [fetcher.data, fetcher.state, revalidator]);
 
   return (
@@ -169,10 +183,10 @@ export default function ResearchConsole({
           comparison list.
         </p>
       )}
-      {!compact && fetcher.data?.messages?.length > 0 && (
+      {!compact && currentResults?.messages?.length > 0 && (
         <div className="workspace-callout">
           <strong>Catalog notes</strong>
-          <span>{fetcher.data.messages.join(" ")}</span>
+          <span>{currentResults.messages.join(" ")}</span>
         </div>
       )}
     </div>
